@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
+import graphviz # 로드맵 시각화용
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v5.2", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v5.3", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -12,7 +13,7 @@ if 'step' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {} # 유저 정보를 담을 딕셔너리
 
-# 스타일링 (서핏 느낌의 카드 UI - v5.0 디자인 복원)
+# 스타일링 (서핏 느낌의 카드 UI)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
@@ -54,7 +55,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (v5.1 유지 - 변경 없음)
+# STEP 1: 로그인 및 회원가입 (v5.2 유지)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -118,7 +119,7 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택 (v5.0의 상세 설명 복원)
+# STEP 2: 트랙 선택 (v5.2 유지)
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
@@ -150,7 +151,7 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 파일 업로드 (v5.0 기능 복원)
+# STEP 3: 상세 진단 & 파일 업로드 (v5.2 유지)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -169,14 +170,14 @@ elif st.session_state.step == 3:
     st.markdown("### 🕵️ 정밀 진단 (선택 사항)")
     st.caption("입력하시면 분석 정확도가 **200%** 올라갑니다.")
     
-    # 2. 성향/인성 검사 (v5.0 복원)
+    # 2. 성향/인성 검사
     with st.expander("🧠 간단 성향/인성 검사 진행하기"):
         st.write("나에게 맞는 업무 스타일을 찾아드립니다.")
         q1 = st.radio("1. 새로운 문제를 마주했을 때 나는?", ["논리적으로 분석하여 근거를 찾는다", "직관적으로 아이디어를 낸다", "주변 사람들과 논의하여 해결한다"])
         q2 = st.radio("2. 선호하는 조직 문화는?", ["체계적이고 역할이 분명한 곳", "자율적이고 성과 중심인 곳", "수평적이고 협력적인 곳"])
         st.checkbox("진단 결과 반영하기", value=True)
 
-    # 3. 파일 업로드 (v5.0 복원)
+    # 3. 파일 업로드
     uploaded_file = st.file_uploader("📂 이력서/자소서/포트폴리오 업로드 (PDF, Word)", type=['pdf', 'docx'])
     
     st.write("")
@@ -189,12 +190,12 @@ elif st.session_state.step == 3:
                 'target_job': target_job
             })
             
-            # 로딩 연출 (Wizard of Oz - v5.0 복원)
+            # 로딩 연출
             progress_text = "AI가 회원님의 성향과 스펙을 분석 중입니다..."
             my_bar = st.progress(0, text=progress_text)
             
             for percent_complete in range(100):
-                time.sleep(0.02) # 로딩 시간
+                time.sleep(0.02)
                 if percent_complete == 30:
                     my_bar.progress(percent_complete + 1, text="텍스트 추출 중 (OCR)...")
                 elif percent_complete == 60:
@@ -211,7 +212,7 @@ elif st.session_state.step == 3:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (v5.0 서핏 스타일 복원)
+# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 통합)
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -231,11 +232,10 @@ elif st.session_state.step == 4:
         st.divider()
         st.info("💡 **Premium 기능**\n현직자 1:1 멘토링 매칭")
 
-    # [메인 화면 1] 홈 (뉴스피드) - 카드 UI 복원
+    # [메인 화면 1] 홈 (Feed)
     if menu == "🏠 홈 (Feed)":
         st.header(f"🔥 {target_job} 분야 트렌드")
         
-        # 상단 배너
         st.markdown(f"""
         <div style="background: linear-gradient(90deg, #4A90E2 0%, #00E676 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
             <h2 style='color:white; margin:0;'>📢 {user_name}님을 위한 추천 공고</h2>
@@ -246,8 +246,6 @@ elif st.session_state.step == 4:
         col1, col2 = st.columns([2, 1])
         with col1:
             st.subheader("Today's Pick")
-            
-            # 피드 1
             st.markdown(f"""
             <div class="feed-card">
                 <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
@@ -255,8 +253,6 @@ elif st.session_state.step == 4:
                 <p style="color:#666; font-size:14px; margin:0;">서류 마감까지 D-3 | <b>합격 예측: 매우 높음</b></p>
             </div>
             """, unsafe_allow_html=True)
-            
-            # 피드 2
             st.markdown("""
             <div class="feed-card">
                 <span class="tag">꿀팁</span>
@@ -264,8 +260,6 @@ elif st.session_state.step == 4:
                 <p style="color:#666; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
             </div>
             """, unsafe_allow_html=True)
-
-            # 피드 3
             st.markdown(f"""
             <div class="feed-card">
                 <span class="tag">멘토링</span>
@@ -285,97 +279,115 @@ elif st.session_state.step == 4:
                 <p>5. <b>LG에너지솔루션</b></p>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.write("")
-            st.subheader("📅 주요 일정")
-            st.info("2/14: 상반기 공채 설명회")
-            st.warning("2/20: 토익 시험 접수 마감")
 
-    # [메인 화면 2] 로드맵/전략 (트랙별 분기 복원)
+    # [메인 화면 2] 로드맵/전략 (New! v5.3 기능 적용)
     elif menu == "🗺️ 나의 로드맵/전략":
         
-        # 저학년 로드맵
+        # --- [1] 저학년: Roadmap.sh 스타일 (Graphviz) ---
         if track == 'Junior':
-            st.title("🗺️ 커리어 로드맵 (Foundation)")
-            st.info(f"{target_job} 전문가로 성장하기 위한 학년별 가이드입니다.")
+            st.title(f"🗺️ {target_job} 커리어 로드맵")
+            st.caption("선배들의 데이터를 기반으로 생성된 최적의 성장 경로입니다.")
             
-            tab1, tab2 = st.tabs(["1~2학년 (현재)", "3~4학년 (미리보기)"])
-            
-            with tab1:
-                st.markdown("### 🌱 Foundation Phase")
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    st.markdown("""
-                    <div class="feed-card">
-                        <h5>✅ 필수 학업</h5>
-                        <hr>
-                        <p>□ 전공 기초 학점 3.8 이상 유지</p>
-                        <p>□ 영어 기초(토익 700+) 완성</p>
-                        <p>□ {0} 관련 교양 수강</p>
-                    </div>
-                    """.format(target_job), unsafe_allow_html=True)
-                with col_b:
-                    st.markdown("""
-                    <div class="feed-card">
-                        <h5>🔥 추천 활동</h5>
-                        <hr>
-                        <p>□ 교내 마케팅/창업 동아리 가입</p>
-                        <p>□ 연합 동아리 네트워킹</p>
-                        <p>□ 교외 공모전 1회 도전</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-            with tab2:
-                st.write("인턴십과 실무 경험을 쌓는 시기입니다.")
-                st.write("- 산학협력 인턴십")
-                st.write("- 직무 관련 자격증 (데이터, 자격증 등)")
-
-        # 고학년 전략 분석
-        else: # Senior
-            st.title("📊 Gap Analysis & Strategy")
-            st.info(f"{target_job} 합격 확률을 높이기 위한 AI 전략 리포트입니다.")
-            
-            col1, col2 = st.columns([1, 1.5])
+            col1, col2 = st.columns([2, 1])
             
             with col1:
-                st.subheader("진단 요약")
-                st.markdown("""
-                <div class="feed-card" style="border-left: 5px solid #4CAF50;">
-                    <h4>👍 강점 (Strength)</h4>
-                    <p>인턴 경험 1회가 큰 무기입니다. 실무 용어 활용 능력이 우수합니다.</p>
-                </div>
-                <div class="feed-card" style="border-left: 5px solid #F44336;">
-                    <h4>👎 보완점 (Weakness)</h4>
-                    <p>정량적 자격증이 부족합니다. 서류 통과율을 높이려면 보완이 필요합니다.</p>
-                </div>
-                """, unsafe_allow_html=True)
+                # Graphviz로 roadmap.sh 스타일 그리기
+                graph = graphviz.Digraph()
+                graph.attr(rankdir='TB') # 위에서 아래로
+                
+                # 노드 스타일
+                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
+                
+                # 단계별 노드
+                graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
+                graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
+                graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
+                graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
+                graph.node('Cert', '💳 직무 자격증', fillcolor='#FFCCBC')
+                graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
+                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
+
+                # 연결
+                graph.edge('Start', 'GPA')
+                graph.edge('Start', 'Eng')
+                graph.edge('GPA', 'Club')
+                graph.edge('Eng', 'Club')
+                graph.edge('Club', 'Cert')
+                graph.edge('Cert', 'Intern')
+                graph.edge('Intern', 'Job')
+                
+                st.graphviz_chart(graph)
             
             with col2:
-                st.subheader("스펙 레이더 차트")
-                # 차트 데이터
-                chart_data = pd.DataFrame({
-                    "항목": ["학점", "어학", "직무경험", "자격증", "수상"],
-                    "나의 점수": [80, 85, 75, 40, 60],
-                    "합격자 평균": [85, 90, 65, 80, 60]
-                })
-                st.bar_chart(chart_data.set_index("항목"))
+                st.info("💡 **LinkedIn Insight**")
+                st.markdown(f"""
+                <div class="feed-card">
+                    <h4>📊 선배들의 경로 분석</h4>
+                    <p><b>{target_job}</b> 합격자의 <b>65%</b>는<br>
+                    2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
+                    <hr>
+                    <p>✅ <b>필수 스킬 (Skill Gap)</b></p>
+                    <p>- Python (보유)</p>
+                    <p style='color:red;'>- SQL (미보유)</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
+                st.write("🚀 **추천 활동**")
+                st.checkbox("SQLD 자격증 따기 (난이도: 중)")
+                st.checkbox("Y.E.S 경제학회 지원하기")
+
+        # --- [2] 고학년: LinkedIn 스타일 (전략 리포트) ---
+        else: # Senior
+            st.title("📊 합격 전략 리포트")
+            st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
+            
+            # 1. 경쟁률 및 내 위치
+            st.subheader("1. 나의 합격 경쟁력")
+            col_a, col_b = st.columns([1, 2])
+            with col_a:
+                st.metric(label="예상 합격 확률", value="72%", delta="안정권 진입 중")
+            with col_b:
+                st.progress(72)
+                st.caption("합격 안정권(85%)까지 13% 남았습니다.")
+
             st.divider()
-            st.markdown("### 💡 Action Plan")
+
+            # 2. 스펙 비교 (Skill Gap Analysis)
+            st.subheader("2. 합격자 vs 나 (Gap 분석)")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("##### ✅ 내가 가진 강점")
+                st.success("• **인턴 경험 (6개월)**: 경쟁자 평균(3개월)보다 높음")
+                st.success("• **학점 (3.9)**: 합격자 평균(3.7)보다 높음")
+            
+            with col2:
+                st.markdown("##### 🚨 보완이 필요한 점")
+                st.error("• **비즈니스 영어**: OPIc IH 이상이 필요함 (현재 IM2)")
+                st.error("• **자격증**: 데이터 분석 관련 자격증 부재")
+
+            st.divider()
+            
+            # 3. 다음 스텝 (Next Role)
+            st.subheader("3. Next Step Recommendation")
             st.markdown(f"""
-            1. **[D-30]** 부족한 **직무 관련 자격증**을 최우선으로 취득하세요.
-            2. **[D-60]** 자소서에 '인턴 시절 문제 해결 경험'을 **STAR 기법**으로 정리하세요.
-            3. **[추천]** 현재 **원티드**에 올라온 {target_job} 직무 공고에 지원해보세요.
-            """)
+            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px;">
+                <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
+                <p>데이터에 따르면, 귀하의 스펙에서 가장 가성비 좋은 전략은 다음과 같습니다.</p>
+                <ul>
+                    <li><b>[1개월 내]</b> 오픽 IH 취득하기 (합격률 15% 상승 예상)</li>
+                    <li><b>[2개월 내]</b> 포트폴리오에 '데이터 기반 성과' 챕터 추가</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
-        st.info("업로드한 이력서와 포트폴리오를 관리하는 공간입니다. (준비 중)")
+        st.info("업로드한 이력서와 포트폴리오를 관리하는 공간입니다.")
         st.file_uploader("추가 파일 업로드")
 
     elif menu == "⚙️ 설정":
         st.title("설정")
-        st.markdown("##### 내 정보")
         st.write(f"ID: {st.session_state.user_info.get('id', '-')}")
         st.write(f"Email: {st.session_state.user_info.get('email', '-')}")
         st.write(f"Phone: {st.session_state.user_info.get('phone', '-')}")
