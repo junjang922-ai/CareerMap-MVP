@@ -5,7 +5,7 @@ import datetime
 import graphviz # 로드맵 시각화용 (필수)
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v5.7", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v5.9", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -13,22 +13,65 @@ if 'step' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
-# 스타일링 (서핏 느낌의 카드 UI)
+# 스타일링 (v5.7 기능성 + v5.8 핀터레스트 디자인 통합)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
-    h1, h2, h3 {color: #1A237E; font-family: 'Pretendard', sans-serif;}
+    h1, h2, h3, h4 {font-family: 'Pretendard', sans-serif; color: #1A237E;}
     .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 45px; font-weight: bold;}
     
+    /* [기존] 분석 리포트용 카드 */
     .feed-card {
         background-color: white; padding: 20px; border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;
-        border: 1px solid #E0E0E0; transition: transform 0.2s;
+        border: 1px solid #E0E0E0;
     }
-    .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
-    .tag { background-color: #E3F2FD; color: #1565C0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; }
-    .metric-box { background-color: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; text-align: left; }
+
+    /* [New] 핀터레스트 스타일 카드 (홈 화면용) */
+    .pin-card {
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        overflow: hidden;
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+    .pin-img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+    }
+    .pin-content {
+        padding: 18px;
+    }
+    .pin-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #333;
+        line-height: 1.4;
+    }
+    .pin-meta {
+        font-size: 12px;
+        color: #888;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
     
+    /* 태그 스타일 */
+    .tag { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+    .tag-hot { background-color: #FFEBEE; color: #D32F2F; } 
+    .tag-new { background-color: #E3F2FD; color: #1976D2; }
+    .tag-tip { background-color: #FFF3E0; color: #E65100; }
+    .tag-mentor { background-color: #E8F5E9; color: #388E3C; }
+
     /* AI 데이터 연동 박스 */
     .ai-box {
         background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px;
@@ -37,7 +80,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입
+# STEP 1: 로그인 및 회원가입 (v5.7 유지)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -94,7 +137,7 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택
+# STEP 2: 트랙 선택 (v5.7 유지)
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
@@ -122,7 +165,7 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 역량검사 추가 (New!)
+# STEP 3: 상세 진단 & 역량검사 추가 (v5.7 유지)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -138,7 +181,7 @@ elif st.session_state.step == 3:
     
     st.write("")
     
-    # --- [역량검사 추가 기능] ---
+    # AI 역량검사 연동
     st.markdown("### 🧬 AI 역량/성향 데이터 연동")
     with st.container(border=True):
         st.markdown("""
@@ -188,7 +231,7 @@ elif st.session_state.step == 3:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 완벽 복원)
+# STEP 4: 메인 대시보드
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -209,174 +252,190 @@ elif st.session_state.step == 4:
             st.success(f"🧬 **DNA:** {test_key}")
             
         st.divider()
-        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
+        menu = st.radio("MENU", ["🏠 홈 (Trend Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
         st.markdown("💡 **Premium Service**")
         st.write("현직자 1:1 멘토링 매칭")
 
-    # [메인 화면 1] 홈 (Feed)
-    if menu == "🏠 홈 (Feed)":
-        st.header(f"🔥 {target_job} 분야 트렌드")
+    # [메인 화면 1] 홈 (Feed) - 핀터레스트 스타일 적용 (v5.9 변경사항)
+    if menu == "🏠 홈 (Trend Feed)":
         
-        recomm_text = "회원님의 스펙"
-        if "분석가" in test_key or "전략가" in test_key:
-            recomm_text = f"회원님의 **{test_key} 성향**과 **스펙**"
+        # 상단 헤더
+        st.markdown(f"### 🔥 {target_job} 트렌드 픽")
+        st.caption(f"{user_name}님의 **{test_key} 성향**과 스펙을 분석하여 큐레이션 했습니다.")
         
-        st.markdown(f"""
-        <div style="background: linear-gradient(90deg, #6A1B9A 0%, #AB47BC 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
-            <h2 style='color:white; margin:0;'>📢 AI 성향/역량 데이터 분석 완료!</h2>
-            <p style='margin:5px 0 0 0;'>{recomm_text}을 결합하여 <b>{target_job} 직무 적합도 95%</b>로 확인되었습니다.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # 3단 컬럼 Masonry Layout
+        col1, col2, col3 = st.columns(3)
         
-        col1, col2 = st.columns([2, 1])
+        # [Column 1]
         with col1:
-            st.subheader("Today's Pick")
-            
+            # Card 1: 채용공고
             st.markdown(f"""
-            <div class="feed-card">
-                <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
-                <h4 style="margin: 10px 0;">[LG CNS] {target_job} 신입/인턴 채용</h4>
-                <p style="color:#666; font-size:14px; margin:0;">
-                🧬 <b>{test_key}</b> 인재를 선호하는 공고입니다! (성향 매칭됨)</p>
+            <div class="pin-card">
+                <img src="https://images.unsplash.com/photo-1551434678-e076c2236033?w=500&auto=format&fit=crop&q=60" class="pin-img">
+                <div class="pin-content">
+                    <span class="tag tag-hot">채용연계</span> <span class="tag tag-new">New</span>
+                    <div class="pin-title">[LG CNS] {target_job} 신입 채용</div>
+                    <div class="pin-meta">🧬 {test_key} 우대 | 마감 D-3</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
             
+            # Card 2: 멘토링
             st.markdown("""
-            <div class="feed-card">
-                <span class="tag">꿀팁</span>
-                <h4 style="margin: 10px 0;">현직자가 말하는 "이런 자소서는 바로 탈락합니다"</h4>
-                <p style="color:#666; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
+            <div class="pin-card">
+                <div class="pin-content">
+                    <span class="tag tag-mentor">커피챗</span>
+                    <div class="pin-title">현직자 1:1 자소서 첨삭</div>
+                    <div class="pin-meta">☕ 무료 | 선착순 3명</div>
+                    <p style="font-size:13px; color:#666; margin-top:5px;">"AI 역검 결과 자소서에 녹이는 법 알려드려요."</p>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div class="feed-card">
-                <span class="tag">멘토링</span>
-                <h4 style="margin: 10px 0;">{target_job} 3년차 현직자 무료 커피챗 (선착순 5명)</h4>
-                <p style="color:#666; font-size:14px; margin:0;">신청 마감 임박</p>
-            </div>
-            """, unsafe_allow_html=True)
-
+        # [Column 2]
         with col2:
-            st.subheader("실시간 랭킹")
-            st.markdown("""
-            <div class="metric-box">
-                <p>🥇 <b>삼성전자</b> <span style="color:red; float:right;">▲ 2</span></p>
-                <p>🥈 <b>SK하이닉스</b> <span style="color:gray; float:right;">-</span></p>
-                <p>🥉 <b>네이버</b> <span style="color:blue; float:right;">▼ 1</span></p>
-                <p>4. <b>현대자동차</b></p>
-                <p>5. <b>LG에너지솔루션</b></p>
+            # Card 3: 합격 후기
+            st.markdown(f"""
+            <div class="pin-card">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&auto=format&fit=crop&q=60" class="pin-img">
+                <div class="pin-content">
+                    <span class="tag tag-tip">합격후기</span>
+                    <div class="pin-title">{target_job} 합격자 평균 스펙 공개</div>
+                    <div class="pin-meta">👀 조회수 3.4k | 좋아요 120</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-    # [메인 화면 2] 로드맵/전략 (Graphviz 복원!)
+            # Card 4: 일정 알림
+            st.markdown("""
+            <div class="pin-card" style="background-color:#E1F5FE;">
+                <div class="pin-content">
+                    <div class="pin-title" style="color:#0277BD;">📅 이번 주 주요 일정</div>
+                    <ul style="font-size:13px; padding-left:20px; margin-bottom:0; color:#01579B;">
+                        <li>2/14: 상반기 공채 설명회</li>
+                        <li>2/20: 토익 시험 접수 마감</li>
+                    </ul>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # [Column 3]
+        with col3:
+            # Card 5: AI 분석 팁
+            st.markdown(f"""
+            <div class="pin-card">
+                <div class="pin-content">
+                    <span class="tag tag-tip">자소서 팁</span>
+                    <div class="pin-title">'{test_key}' 성향 활용법</div>
+                    <p style="font-size:13px; color:#555; line-height:1.4;">
+                    귀하의 성향을 자소서 '성격의 장단점' 항목에 녹이는 구체적인 예시 문장을 확인하세요.
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Card 6: 실시간 랭킹
+            st.markdown("""
+            <div class="pin-card">
+                <div class="pin-content">
+                    <div class="pin-title">🏆 실시간 인기 기업</div>
+                    <div style="font-size:13px; line-height:1.6;">
+                    1. 삼성전자 🔥<br>
+                    2. SK하이닉스<br>
+                    3. 네이버
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # [메인 화면 2] 로드맵/전략 (v5.7의 Graphviz 로드맵 기능 유지)
     elif menu == "🗺️ 나의 로드맵/전략":
         
-        # --- [1] 저학년: Roadmap.sh 스타일 (Graphviz) ---
+        # 저학년 로드맵
         if track == 'Junior':
             st.title(f"🗺️ {target_job} 커리어 로드맵")
-            st.caption("선배들의 데이터를 기반으로 생성된 최적의 성장 경로입니다.")
+            
+            if "분석가" in test_key:
+                st.success(f"💡 **AI Insight:** '{test_key}' 성향을 가진 선배들은 **데이터 자격증** 취득 시 취업률이 20% 높았습니다.")
+            elif "소통가" in test_key:
+                st.success(f"💡 **AI Insight:** '{test_key}' 성향을 가진 선배들은 **리더십 경험(학회장)**이 합격의 열쇠였습니다.")
+            else:
+                st.info(f"💡 **AI Insight:** 선배들의 합격 데이터를 기반으로 최적 경로를 추천합니다.")
             
             col1, col2 = st.columns([2, 1])
-            
             with col1:
-                # Graphviz로 roadmap.sh 스타일 그리기 (v5.3 코드 복원)
                 graph = graphviz.Digraph()
-                graph.attr(rankdir='TB') # 위에서 아래로 (Top to Bottom)
-                
-                # 노드 스타일 설정
+                graph.attr(rankdir='TB')
                 graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
                 
-                # 단계별 노드 생성
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
-                graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
-                graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
-                graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
-                graph.node('Cert', '💳 직무 자격증', fillcolor='#FFCCBC')
-                graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
-                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
-
-                # 성향에 따른 시각적 강조
+                graph.node('GPA', '📚 학점 관리', fillcolor='#C8E6C9')
+                
                 if "분석가" in test_key:
                     graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
+                    graph.node('Club', '🤝 교내 학회', fillcolor='#E3F2FD')
                 elif "소통가" in test_key:
+                    graph.node('Cert', '💳 직무 자격증', fillcolor='#E3F2FD')
                     graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
+                else:
+                    graph.node('Cert', '💳 직무 자격증', fillcolor='#E3F2FD')
+                    graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
 
-                # 연결선 그리기
+                graph.node('Intern', '💼 인턴십', fillcolor='#FFAB91')
+                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
+
                 graph.edge('Start', 'GPA')
-                graph.edge('Start', 'Eng')
+                graph.edge('GPA', 'Cert')
                 graph.edge('GPA', 'Club')
-                graph.edge('Eng', 'Club')
-                graph.edge('Club', 'Cert')
                 graph.edge('Cert', 'Intern')
+                graph.edge('Club', 'Intern')
                 graph.edge('Intern', 'Job')
-                
                 st.graphviz_chart(graph)
             
             with col2:
-                st.info("💡 **LinkedIn Insight**")
-                st.markdown(f"""
-                <div class="feed-card">
-                    <h4>📊 선배들의 경로 분석</h4>
-                    <p><b>{target_job}</b> 합격자의 <b>65%</b>는<br>
-                    2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
-                    <hr>
-                    <p>✅ <b>필수 스킬 (Skill Gap)</b></p>
-                    <p>- Python (보유)</p>
-                    <p style='color:red;'>- SQL (미보유)</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
+                st.info("💡 **성향 연계 솔루션**")
+                st.write(f"귀하의 **{test_key}** 성향은 연구/분석 직무에서 빛을 발합니다.")
+                st.write("다만, **설득/협상 능력**이 부족할 수 있으니 관련 활동을 추천합니다.")
+                st.divider()
                 st.write("🚀 **추천 활동**")
-                st.checkbox("SQLD 자격증 따기 (난이도: 중)")
+                st.checkbox("SQLD 자격증 따기")
                 st.checkbox("Y.E.S 경제학회 지원하기")
 
-        # --- [2] 고학년: LinkedIn 스타일 (전략 리포트) ---
+        # 고학년 전략
         else: # Senior
             st.title("📊 합격 전략 리포트")
-            st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
+            st.info(f"AI 역량검사 결과({test_key})와 스펙을 결합한 초개인화 리포트입니다.")
             
-            # 1. 경쟁률 및 내 위치 (게이지 차트 느낌)
-            st.subheader("1. 나의 합격 경쟁력")
-            col_a, col_b = st.columns([1, 2])
-            with col_a:
-                st.metric(label="예상 합격 확률", value="72%", delta="안정권 진입 중")
-            with col_b:
-                st.progress(72)
-                st.caption("합격 안정권(85%)까지 13% 남았습니다.")
-
-            st.divider()
-
-            # 2. 스펙 비교 (Skill Gap Analysis)
-            st.subheader("2. 합격자 vs 나 (Gap 분석)")
-            
-            col1, col2 = st.columns(2)
+            col1, col2 = st.columns([1, 1.5])
             with col1:
-                st.markdown("##### ✅ 내가 가진 강점")
-                st.success("• **인턴 경험 (6개월)**: 경쟁자 평균(3개월)보다 높음")
-                st.success("• **학점 (3.9)**: 합격자 평균(3.7)보다 높음")
+                st.subheader("종합 진단")
+                st.markdown(f"""
+                <div class="feed-card" style="border-left: 5px solid #9C27B0;">
+                    <h4>🧠 성향 적합도 (Soft Skill)</h4>
+                    <p><b>{target_job}</b> 직무와 귀하의 <b>{test_key}</b> 성향은 <br>
+                    <span style="color:#9C27B0; font-size:20px; font-weight:bold;">95% 일치</span>합니다.</p>
+                </div>
+                <div class="feed-card" style="border-left: 5px solid #F44336;">
+                    <h4>💪 스펙 적합도 (Hard Skill)</h4>
+                    <p>하지만 정량적 스펙(자격증)이 부족합니다.<br>
+                    <span style="color:#F44336; font-size:20px; font-weight:bold;">70% 수준</span>입니다.</p>
+                </div>
+                """, unsafe_allow_html=True)
             
             with col2:
-                st.markdown("##### 🚨 보완이 필요한 점")
-                st.error("• **비즈니스 영어**: OPIc IH 이상이 필요함 (현재 IM2)")
-                st.error("• **자격증**: 데이터 분석 관련 자격증 부재")
-
-            st.divider()
-            
-            # 3. 다음 스텝 (Next Role)
-            st.subheader("3. Next Step Recommendation")
-            st.markdown(f"""
-            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px;">
-                <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
-                <p>데이터에 따르면, 귀하의 스펙에서 가장 가성비 좋은 전략은 다음과 같습니다.</p>
-                <ul>
-                    <li><b>[1개월 내]</b> 오픽 IH 취득하기 (합격률 15% 상승 예상)</li>
-                    <li><b>[2개월 내]</b> 포트폴리오에 '데이터 기반 성과' 챕터 추가</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
+                st.subheader("보완 전략 (Action Plan)")
+                st.markdown("""
+                1. **[강점 강화]** 자소서 성격의 장단점 항목에 AI 진단 키워드('분석력', '치밀함')를 적극 활용하세요.
+                2. **[약점 보완]** 성향은 완벽하나 기술(Skill)이 부족합니다. SQLD 자격증으로 '분석력'을 증명할 근거를 만드세요.
+                """)
+                
+                chart_data = pd.DataFrame({
+                    "항목": ["성향적합도", "학점", "어학", "직무경험", "자격증"],
+                    "점수": [95, 85, 90, 70, 40]
+                })
+                st.bar_chart(chart_data.set_index("항목"))
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
