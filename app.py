@@ -2,18 +2,18 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
-import graphviz # 로드맵 시각화용
+import graphviz # 로드맵 시각화용 라이브러리
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v5.4", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v5.5", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
-    st.session_state.step = 1
+    st.session_state.step = 1  # 1:입력 -> 2:트랙선택 -> 3:상세 -> 4:대시보드
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
-# 스타일링 (서핏 느낌의 카드 UI)
+# 스타일링 (서핏 느낌의 카드 UI + 잡다 연동 스타일)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
@@ -22,15 +22,37 @@ st.markdown("""
     
     /* 대시보드 카드 스타일 */
     .feed-card {
-        background-color: white; padding: 20px; border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;
-        border: 1px solid #E0E0E0; transition: transform 0.2s;
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+        border: 1px solid #E0E0E0;
+        transition: transform 0.2s;
     }
-    .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
-    .tag { background-color: #E3F2FD; color: #1565C0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; }
-    .metric-box { background-color: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; text-align: center; }
+    .feed-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+    .tag {
+        background-color: #E3F2FD;
+        color: #1565C0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    .metric-box {
+        background-color: #fff;
+        border: 1px solid #eee;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: left;
+    }
     
-    /* 잡다 연동 배너 스타일 */
+    /* 잡다(JOBDA) 연동 배너 스타일 */
     .jobda-box {
         background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px;
     }
@@ -38,7 +60,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (v5.2 유지)
+# STEP 1: 로그인 및 회원가입
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -95,18 +117,20 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택 (v5.2 유지)
+# STEP 2: 트랙 선택
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
     st.title(f"{user_name}님, 환영합니다! 👋")
     st.subheader("현재 상황에 맞는 트랙을 선택하세요.")
+    st.markdown("선택하신 트랙에 따라 **전혀 다른 솔루션**이 제공됩니다.")
     
     col1, col2 = st.columns(2)
     with col1:
         with st.container(border=True):
             st.markdown("### 🐣 저학년 (1~2학년)")
             st.write("아직 구체적인 진로를 정하지 못했어요.")
+            st.info("🎯 **제공 서비스:**\n- 커리어 성향(DNA) 진단\n- 학년별 필수 로드맵\n- 교내외 대외활동 추천")
             if st.button("저학년 트랙 선택"):
                 st.session_state.user_info['track'] = 'Junior'
                 st.session_state.step = 3
@@ -115,13 +139,14 @@ elif st.session_state.step == 2:
         with st.container(border=True):
             st.markdown("### 🦅 고학년 (3~4학년/취준)")
             st.write("목표 직무가 있고, 합격이 목표예요.")
+            st.info("🎯 **제공 서비스:**\n- 이력서/자소서 AI 분석\n- 합격 확률 시뮬레이션\n- 부족한 스펙(Gap) 진단")
             if st.button("고학년 트랙 선택"):
                 st.session_state.user_info['track'] = 'Senior'
                 st.session_state.step = 3
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 역량검사 연동 (New!)
+# STEP 3: 상세 진단 & 역량검사 연동
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -153,10 +178,8 @@ elif st.session_state.step == 3:
         if has_jobda == "네, 응시했습니다.":
             col_j1, col_j2 = st.columns(2)
             with col_j1:
-                # 파일 업로드 (시늉)
                 st.file_uploader("역량검사 결과지 업로드 (PDF)", type=['pdf'])
             with col_j2:
-                # 키워드 선택 (MVP용 간편 입력)
                 jobda_keyword = st.selectbox("결과지에 나온 나의 핵심 성향 키워드는?", 
                                              ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
                 if jobda_keyword != "선택해주세요":
@@ -167,7 +190,6 @@ elif st.session_state.step == 3:
                 st.radio("선호하는 업무 스타일", ["혼자 깊게 파고들기", "함께 토론하며 풀기"])
 
     st.write("")
-    # 기존 파일 업로드
     uploaded_file = st.file_uploader("📂 이력서/자소서 업로드 (Hard Skill 분석용)", type=['pdf', 'docx'])
     
     st.write("")
@@ -190,13 +212,13 @@ elif st.session_state.step == 3:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (로드맵 연동 강화)
+# STEP 4: 메인 대시보드 (v5.3 콘텐츠 완전 복원)
 # ==========================================
 elif st.session_state.step == 4:
     
     user_name = st.session_state.user_info.get('name', 'User')
     target_job = st.session_state.user_info.get('target_job', '직무')
-    jobda_key = st.session_state.user_info.get('jobda_keyword', '미입력') # 잡다 키워드 가져오기
+    jobda_key = st.session_state.user_info.get('jobda_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
     # [사이드바]
@@ -204,19 +226,28 @@ elif st.session_state.step == 4:
         st.title("🧭 Career Map")
         st.write(f"**{user_name}**님")
         st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
+        
+        # DNA 뱃지 표시
         if "분석가" in jobda_key or "전략가" in jobda_key:
-            st.info(f"🧬 **DNA:** {jobda_key}") # 사이드바에 성향 표시
+            st.info(f"🧬 **DNA:** {jobda_key}")
+        elif "소통가" in jobda_key or "개척자" in jobda_key:
+            st.success(f"🧬 **DNA:** {jobda_key}")
+            
         st.divider()
         menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
+        
+        st.divider()
+        st.markdown("💡 **Premium Service**")
+        st.write("현직자 1:1 멘토링 매칭")
 
-    # [메인 화면 1] 홈 (Feed)
+    # [메인 화면 1] 홈 (Feed) - 콘텐츠 완전 복원
     if menu == "🏠 홈 (Feed)":
         st.header(f"🔥 {target_job} 분야 트렌드")
         
-        # 잡다 연동 결과에 따른 맞춤형 배너 (Personalization)
+        # 맞춤형 배너 (잡다 결과 반영)
         recomm_text = "회원님의 스펙"
-        if "분석가" in jobda_key:
-            recomm_text = "회원님의 **분석적 성향(JOBDA)**과 **스펙**"
+        if "분석가" in jobda_key or "전략가" in jobda_key:
+            recomm_text = f"회원님의 **{jobda_key} 성향**과 **스펙**"
         
         st.markdown(f"""
         <div style="background: linear-gradient(90deg, #6A1B9A 0%, #AB47BC 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
@@ -228,30 +259,54 @@ elif st.session_state.step == 4:
         col1, col2 = st.columns([2, 1])
         with col1:
             st.subheader("Today's Pick")
+            
+            # 피드 1: 채용 공고 (잡다 연동 강조)
             st.markdown(f"""
             <div class="feed-card">
-                <span class="tag">채용</span>
-                <h4 style="margin: 10px 0;">[LG CNS] {target_job} 신입 채용</h4>
+                <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
+                <h4 style="margin: 10px 0;">[LG CNS] {target_job} 신입/인턴 채용</h4>
                 <p style="color:#666; font-size:14px; margin:0;">
-                🧬 <b>{jobda_key}</b> 인재를 우대하는 공고입니다! (서류 가산점 예상)</p>
+                🧬 <b>{jobda_key}</b> 인재를 선호하는 공고입니다! (서류 가산점 예상)</p>
             </div>
             """, unsafe_allow_html=True)
             
+            # 피드 2: 꿀팁 (v5.3 복원)
             st.markdown("""
             <div class="feed-card">
                 <span class="tag">꿀팁</span>
-                <h4 style="margin: 10px 0;">역검 결과가 '안정형'이라면? 자소서 이렇게 쓰세요</h4>
-                <p style="color:#666; font-size:14px; margin:0;">조회수 3.4k</p>
+                <h4 style="margin: 10px 0;">현직자가 말하는 "이런 자소서는 바로 탈락합니다"</h4>
+                <p style="color:#666; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 피드 3: 멘토링 (v5.3 복원)
+            st.markdown(f"""
+            <div class="feed-card">
+                <span class="tag">멘토링</span>
+                <h4 style="margin: 10px 0;">{target_job} 3년차 현직자 무료 커피챗 (선착순 5명)</h4>
+                <p style="color:#666; font-size:14px; margin:0;">신청 마감 임박</p>
             </div>
             """, unsafe_allow_html=True)
 
         with col2:
             st.subheader("실시간 랭킹")
             st.markdown("""
-            <div class="metric-box" style="text-align:left;">
-                <p>🥇 <b>삼성전자</b></p>
-                <p>🥈 <b>LG CNS</b> (급상승 🔥)</p>
-                <p>🥉 <b>SK하이닉스</b></p>
+            <div class="metric-box">
+                <p>🥇 <b>삼성전자</b> <span style="color:red; float:right;">▲ 2</span></p>
+                <p>🥈 <b>SK하이닉스</b> <span style="color:gray; float:right;">-</span></p>
+                <p>🥉 <b>네이버</b> <span style="color:blue; float:right;">▼ 1</span></p>
+                <p>4. <b>현대자동차</b></p>
+                <p>5. <b>LG에너지솔루션</b></p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.write("")
+            st.subheader("📅 주요 일정")
+            st.markdown("""
+            <div class="metric-box">
+                <p>✅ <b>2/14</b> 상반기 공채 설명회</p>
+                <p>⚠️ <b>2/20</b> 토익 시험 접수 마감</p>
+                <p>📅 <b>2/28</b> 삼성전자 서류 오픈(예상)</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -262,11 +317,12 @@ elif st.session_state.step == 4:
         if track == 'Junior':
             st.title(f"🗺️ {target_job} 커리어 로드맵")
             
-            # 잡다 키워드에 따라 추천 로드맵이 바뀌는 멘트
             if "분석가" in jobda_key:
-                st.success(f"💡 **AI Insight:** '{jobda_key}' 성향을 가진 선배들은 **자격증 취득**을 우선시했습니다.")
+                st.success(f"💡 **AI Insight:** '{jobda_key}' 성향을 가진 선배들은 **데이터 자격증** 취득 시 취업률이 20% 높았습니다.")
             elif "소통가" in jobda_key:
-                st.success(f"💡 **AI Insight:** '{jobda_key}' 성향을 가진 선배들은 **대외활동/동아리**에 집중했습니다.")
+                st.success(f"💡 **AI Insight:** '{jobda_key}' 성향을 가진 선배들은 **리더십 경험(학회장)**이 합격의 열쇠였습니다.")
+            else:
+                st.info(f"💡 **AI Insight:** 선배들의 합격 데이터를 기반으로 최적 경로를 추천합니다.")
             
             col1, col2 = st.columns([2, 1])
             with col1:
@@ -277,13 +333,16 @@ elif st.session_state.step == 4:
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
                 graph.node('GPA', '📚 학점 관리', fillcolor='#C8E6C9')
                 
-                # 성향에 따라 강조점 변경 (시각적 차별화)
+                # 성향에 따른 시각적 강조
                 if "분석가" in jobda_key:
-                    graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') # 강조
+                    graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
                     graph.node('Club', '🤝 교내 학회', fillcolor='#E3F2FD')
+                elif "소통가" in jobda_key:
+                    graph.node('Cert', '💳 직무 자격증', fillcolor='#E3F2FD')
+                    graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
                 else:
                     graph.node('Cert', '💳 직무 자격증', fillcolor='#E3F2FD')
-                    graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3') # 강조
+                    graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
 
                 graph.node('Intern', '💼 인턴십', fillcolor='#FFAB91')
                 graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
@@ -300,6 +359,10 @@ elif st.session_state.step == 4:
                 st.info("💡 **잡다(JOBDA) 연계 분석**")
                 st.write(f"귀하의 **{jobda_key}** 성향은 연구/분석 직무에서 빛을 발합니다.")
                 st.write("다만, **설득/협상 능력**이 부족할 수 있으니 관련 활동을 추천합니다.")
+                st.divider()
+                st.write("🚀 **추천 활동**")
+                st.checkbox("SQLD 자격증 따기")
+                st.checkbox("Y.E.S 경제학회 지원하기")
 
         # 고학년 전략
         else: # Senior
@@ -337,9 +400,10 @@ elif st.session_state.step == 4:
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
-        st.write("업로드된 파일:")
-        st.write("- 역량검사 결과지.pdf")
-        st.write("- 이력서_final.pdf")
+        st.write("업로드된 파일 목록:")
+        st.markdown("- 📄 `잡다_역량검사_결과.pdf`")
+        st.markdown("- 📄 `이력서_v1.pdf`")
+        st.button("파일 추가하기")
 
     elif menu == "⚙️ 설정":
         st.title("설정")
