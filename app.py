@@ -1,222 +1,283 @@
 import streamlit as st
+import pandas as pd
 import time
+import datetime
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v4.5", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map Dashboard", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
-    st.session_state.step = 1
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = ""
-if 'career_type' not in st.session_state:
-    st.session_state.career_type = ""
-if 'final_prob' not in st.session_state:
-    st.session_state.final_prob = 0
+    st.session_state.step = 1  # 1:로그인 -> 2:트랙선택 -> 3:상세입력 -> 4:대시보드
+if 'user_info' not in st.session_state:
+    st.session_state.user_info = {}
 
-# 스타일링
+# 스타일링 (서핏 느낌의 카드 UI)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
-    h1 {color: #1A237E;}
-    .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 50px; font-size: 18px; font-weight: bold;}
-    .card {background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px;}
-    .big-number {font-size: 40px; font-weight: bold; color: #1E88E5;}
+    h1, h2, h3 {color: #1A237E; font-family: 'Pretendard', sans-serif;}
+    .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 45px;}
+    
+    /* 대시보드 카드 스타일 */
+    .feed-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+        border: 1px solid #E0E0E0;
+        transition: transform 0.2s;
+    }
+    .feed-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .tag {
+        background-color: #E3F2FD;
+        color: #1565C0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .sidebar-menu {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+    .sidebar-menu:hover {
+        background-color: #E8EAF6;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# [STEP 1] 로그인
+# STEP 1: 로그인 및 개인정보 (Onboarding)
 # ==========================================
 if st.session_state.step == 1:
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        st.write("")
-        st.markdown("<h1 style='text-align: center;'>🧭 Career Map</h1>", unsafe_allow_html=True)
-        st.markdown("<h5 style='text-align: center;'>데이터 기반 대학생 커리어 네비게이션</h5>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; margin-top: 50px;'>🧭 Career Map</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #666;'>나만의 커리어 네비게이션을 시작하세요.</p>", unsafe_allow_html=True)
         st.divider()
         
-        name_input = st.text_input("이름을 입력해주세요", placeholder="예: 연세인")
-        
-        if st.button("시작하기"):
-            if name_input:
-                st.session_state.user_name = name_input
-                st.session_state.step = 2
-                st.rerun()
-            else:
-                st.warning("이름을 입력해주세요.")
+        with st.container(border=True):
+            name = st.text_input("이름", placeholder="예: 김연세")
+            dob = st.date_input("생년월일", min_value=datetime.date(1990, 1, 1))
+            univ = st.text_input("학교/전공", placeholder="예: 연세대학교 경제학과")
+            
+            if st.button("다음으로 →"):
+                if name and univ:
+                    st.session_state.user_info['name'] = name
+                    st.session_state.user_info['univ'] = univ
+                    st.session_state.step = 2
+                    st.rerun()
+                else:
+                    st.warning("정보를 입력해주세요.")
 
 # ==========================================
-# [STEP 2] 트랙 선택 (Main Hub)
+# STEP 2: 트랙 선택 (Track Selection)
 # ==========================================
 elif st.session_state.step == 2:
-    st.title(f"반갑습니다, {st.session_state.user_name}님! 👋")
-    st.subheader("현재 상황에 맞는 솔루션을 선택하세요.")
+    st.title(f"{st.session_state.user_info['name']}님, 반갑습니다! 👋")
+    st.subheader("현재 어떤 상황인지 알려주세요.")
     
     col1, col2 = st.columns(2)
     
-    # Track A: 저학년 (진로 탐색)
     with col1:
         with st.container(border=True):
-            st.markdown("### 🐣 진로 탐색 (저학년)")
-            st.info("나에게 맞는 직무가 무엇인지 모르겠다면?")
-            st.write("- 커리어 성향/적성 진단")
-            st.write("- 전공 기반 유망 직무 추천")
-            st.write("- 학년별 필수 로드맵 제공")
-            if st.button("나의 커리어 성향 찾기 👉"):
-                st.session_state.grade_mode = "Junior"
-                st.session_state.step = 21 # Junior 진단
+            st.markdown("### 🐣 저학년 (1~2학년)")
+            st.write("아직 구체적인 진로를 정하지 못했어요.")
+            st.info("🎯 **제공 서비스:** 커리어 로드맵, 적성 검사, 대외활동 추천")
+            if st.button("저학년 트랙 선택"):
+                st.session_state.user_info['track'] = 'Junior'
+                st.session_state.step = 3
                 st.rerun()
-
-    # Track B: 고학년 (실전 취업)
+                
     with col2:
         with st.container(border=True):
-            st.markdown("### 🦅 실전 취업 (고학년)")
-            st.info("목표 기업 합격 확률이 궁금하다면?")
-            st.write("- 스펙 정밀 진단 (Gap 분석)")
-            st.write("- 합격 확률 시뮬레이션")
-            st.write("- 부족한 스펙 보완 전략")
-            if st.button("합격 확률 진단하기 👉"):
-                st.session_state.grade_mode = "Senior"
-                st.session_state.step = 31 # Senior 입력
+            st.markdown("### 🦅 고학년 (3~4학년/취준)")
+            st.write("목표 직무가 있고, 합격이 목표예요.")
+            st.info("🎯 **제공 서비스:** 스펙/자소서 분석, 합격 확률 예측, 부족한 점 진단")
+            if st.button("고학년 트랙 선택"):
+                st.session_state.user_info['track'] = 'Senior'
+                st.session_state.step = 3
                 st.rerun()
 
 # ==========================================
-# [STEP 2-1] Junior: 성향 진단
+# STEP 3: 상세 진단 & 파일 업로드 (Deep Dive)
 # ==========================================
-elif st.session_state.step == 21:
-    st.title("🧩 커리어 성향 진단 (Career DNA)")
-    st.write("간단한 질문을 통해 본인에게 딱 맞는 직무 스타일을 찾아드립니다.")
+elif st.session_state.step == 3:
+    track = st.session_state.user_info['track']
+    st.title("🧩 맞춤형 설계를 위한 추가 정보")
     
-    with st.container(border=True):
-        q1 = st.radio("Q1. 팀 프로젝트를 할 때 나는?", 
-                      ["자료 조사를 하고 논리적인 근거를 찾는 게 편하다.", 
-                       "발표 자료를 만들거나 아이디어를 내는 게 즐겁다.",
-                       "팀원들의 의견을 조율하고 이끄는 게 좋다."])
-        st.write("")
-        q2 = st.radio("Q2. 내가 선호하는 과제 유형은?", 
-                      ["정해진 답이 있는 수학/통계/분석 과제", 
-                       "나만의 생각을 펼치는 에세이/기획 과제",
-                       "사람들과 토론하고 결과를 도출하는 과제"])
+    # 공통 질문
+    target_job = st.text_input("관심 직무/분야 (필수)", placeholder="예: 마케팅, 데이터 분석, 금융권 등")
     
     st.write("")
-    if st.button("진단 결과 확인하기"):
-        with st.spinner('AI가 성향을 분석하고 있습니다...'):
-            time.sleep(1.5)
-        
-        # 진단 로직
-        if "자료" in q1 or "수학" in q2:
-            st.session_state.career_type = "분석가형 (Analyst)"
-        elif "아이디어" in q1 or "에세이" in q2:
-            st.session_state.career_type = "창작자형 (Creator)"
-        else:
-            st.session_state.career_type = "리더형 (Manager)"
-            
-        st.session_state.step = 22
-        st.rerun()
+    st.markdown("### 🕵️ 정밀 진단 (선택 사항)")
+    st.caption("입력하시면 분석 정확도가 **200%** 올라갑니다.")
+    
+    # 인성/성향 검사 (간소화)
+    with st.expander("🧠 간단 성향/인성 검사 진행하기"):
+        st.radio("1. 새로운 문제를 마주했을 때 나는?", ["논리적으로 분석한다", "직관적으로 해결책을 찾는다", "주변에 조언을 구한다"])
+        st.radio("2. 선호하는 업무 환경은?", ["체계적이고 안정적인 곳", "자율적이고 도전적인 곳", "팀워크가 중요한 곳"])
+        st.checkbox("진단 결과 반영하기")
 
-# ==========================================
-# [STEP 2-2] Junior: 결과 및 로드맵
-# ==========================================
-elif st.session_state.step == 22:
-    st.balloons()
-    st.title("💎 진단 결과 리포트")
+    # 파일 업로드
+    uploaded_file = st.file_uploader("📂 이력서/자소서/포트폴리오 업로드 (PDF, Word)", type=['pdf', 'docx'])
     
-    st.markdown(f"""
-    <div class="card" style="background-color:#E3F2FD; border-left: 5px solid #2196F3;">
-        <h3>{st.session_state.user_name}님의 커리어 유형은 <b>'{st.session_state.career_type}'</b> 입니다.</h3>
-        <p>꼼꼼한 데이터 분석과 논리적인 사고에 강점이 있습니다. <br>
-        단순 사무보다는 <b>전문성을 요하는 직무</b>에서 두각을 나타낼 가능성이 높습니다.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("🚀 추천 직무")
-        if "분석가" in st.session_state.career_type:
-            st.success("1. 데이터 분석가 (Data Analyst)")
-            st.info("2. 금융/투자 심사역")
-        elif "창작자" in st.session_state.career_type:
-            st.success("1. 서비스 기획 (PM/PO)")
-            st.info("2. 마케팅/브랜드 매니저")
-        else:
-            st.success("1. 영업/영업관리")
-            st.info("2. 인사(HR) 매니저")
-            
-    with col2:
-        st.subheader("🗺️ 학년별 액션 플랜")
-        st.warning("⚠️ **Foundation 단계 (1~2학년)**")
-        st.checkbox("학점 3.8 이상 유지 (성실성 증명)", value=True)
-        st.checkbox("관련 분야 학회/동아리 가입")
-        st.checkbox("컴활/한국사 자격증 취득")
-    
-    st.divider()
-    if st.button("처음으로"):
-        st.session_state.step = 1
-        st.rerun()
-
-# ==========================================
-# [STEP 3-1] Senior: 스펙 상세 입력 (추가됨!)
-# ==========================================
-elif st.session_state.step == 31:
-    st.title("📊 합격 확률 진단")
-    st.info("보유하고 계신 스펙을 입력해주세요.")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("학업 및 어학")
-        gpa = st.slider("학점 (4.3)", 2.0, 4.3, 3.5, 0.1)
-        toeic = st.slider("토익", 500, 990, 800, 10)
-    with col2:
-        st.subheader("실무 및 경험")
-        intern = st.number_input("인턴 경험 (개월)", 0, 24, 0)
-        awards = st.number_input("공모전 수상 (회)", 0, 10, 0)
-
     st.write("")
-    if st.button("AI 분석 시작 🚀"):
-        with st.spinner("합격 데이터와 대조 중..."):
-            time.sleep(1.5)
-            # 가상 점수 계산
-            score = (gpa * 10) + (intern * 5) + (awards * 3)
-            if toeic >= 850: score += 10
-            st.session_state.final_prob = min(int(score), 98)
-            st.session_state.intern_months = intern
-            st.session_state.step = 32
+    if st.button("🚀 나만의 커리어 대시보드 생성하기"):
+        if target_job:
+            st.session_state.user_info['target_job'] = target_job
+            
+            # 로딩 연출 (Wizard of Oz)
+            progress_text = "AI가 회원님의 성향과 스펙을 분석 중입니다..."
+            my_bar = st.progress(0, text=progress_text)
+            for percent_complete in range(100):
+                time.sleep(0.02)
+                my_bar.progress(percent_complete + 1)
+            
+            st.session_state.step = 4
             st.rerun()
+        else:
+            st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# [STEP 3-2] Senior: 분석 결과 (추가됨!)
+# STEP 4: 메인 대시보드 (Surfit Style)
 # ==========================================
-elif st.session_state.step == 32:
-    st.title("📈 AI 합격 예측 리포트")
+elif st.session_state.step == 4:
     
-    c1, c2 = st.columns(2)
-    with c1:
+    # [사이드바] 네비게이션
+    with st.sidebar:
+        st.title("🧭 Career Map")
+        st.write(f"**{st.session_state.user_info['name']}**님")
+        st.caption(f"{st.session_state.user_info['univ']} | {st.session_state.user_info['track']}")
+        st.divider()
+        
+        # 메뉴 선택 (라디오 버튼을 메뉴처럼 활용)
+        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
+        
+        st.divider()
+        st.info("💡 **Premium 기능**\n현직자 1:1 멘토링 매칭")
+
+    # [메인 화면 1] 홈 (뉴스피드)
+    if menu == "🏠 홈 (Feed)":
+        st.header(f"🔥 {st.session_state.user_info['target_job']} 분야 트렌드")
+        
+        # 상단 추천 배너
         st.markdown(f"""
-        <div class="card" style="text-align:center;">
-            <p style="color:#666; margin:0;">예상 합격 확률</p>
-            <div class="big-number">{st.session_state.final_prob}%</div>
+        <div style="background: linear-gradient(90deg, #4A90E2 0%, #00E676 100%); padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;">
+            <h3>📢 {st.session_state.user_info['name']}님을 위한 추천 공고</h3>
+            <p>회원님의 스펙과 <b>92% 일치</b>하는 인턴 공고가 떴어요!</p>
         </div>
         """, unsafe_allow_html=True)
-    with c2:
-        gap = 100 - st.session_state.final_prob
-        st.markdown(f"""
-        <div class="card" style="text-align:center;">
-            <p style="color:#666; margin:0;">부족한 점수(Gap)</p>
-            <div class="big-number" style="color:#FF5252;">-{gap}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.subheader("Today's Pick")
+            # 피드 아이템 1 (카드 UI)
+            st.markdown(f"""
+            <div class="feed-card">
+                <span class="tag">인턴십</span>
+                <h4>[카카오] {st.session_state.user_info['target_job']} 채용 연계형 인턴 모집</h4>
+                <p style="color:#666; font-size:14px;">서류 마감까지 D-3 | 예상 합격률: <span style="color:#4CAF50; font-weight:bold;">높음</span></p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 피드 아이템 2
+            st.markdown("""
+            <div class="feed-card">
+                <span class="tag">꿀팁</span>
+                <h4>합격 자소서 50개 뜯어보고 발견한 공통점 (PDF 무료 배포)</h4>
+                <p style="color:#666; font-size:14px;">조회수 1.2k | 좋아요 450</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.subheader("💡 AI 분석 코멘트")
-    if st.session_state.intern_months == 0:
-        st.error("🚨 **Critical:** 실무 경험(인턴)이 부족합니다.")
-        st.write("가장 시급한 것은 '직무 관련 경험'을 만드는 것입니다.")
-    elif st.session_state.final_prob < 80:
-        st.warning("⚠️ **Warning:** 스펙이 평범합니다. 차별화 포인트가 필요합니다.")
-    else:
-        st.success("🎉 **Excellent:** 아주 훌륭한 상태입니다.")
+            # 피드 아이템 3
+            st.markdown(f"""
+            <div class="feed-card">
+                <span class="tag">멘토링</span>
+                <h4>{st.session_state.user_info['target_job']} 현직자 커피챗 모집 (선착순)</h4>
+                <p style="color:#666; font-size:14px;">무료 신청 가능</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.divider()
-    if st.button("처음으로 돌아가기"):
-        st.session_state.step = 1
-        st.rerun()
+        with col2:
+            st.subheader("실시간 랭킹")
+            st.write("1. 🥇 삼성전자 DS부문")
+            st.write("2. 🥈 SK하이닉스")
+            st.write("3. 🥉 네이버 웹툰")
+            st.divider()
+            st.write("📅 **이번 달 일정**")
+            st.success("2/14: 토익 시험 접수")
+            st.warning("2/20: 삼성전자 공채 시작(예상)")
+
+    # [메인 화면 2] 나의 로드맵 / 전략 (분석 결과)
+    elif menu == "🗺️ 나의 로드맵/전략":
+        track = st.session_state.user_info['track']
+        
+        # --- 저학년용 로드맵 ---
+        if track == 'Junior':
+            st.title("🗺️ 커리어 가이드라인 (Roadmap)")
+            st.info(f"{st.session_state.user_info['target_job']} 전문가가 되기 위한 최적의 경로입니다.")
+            
+            tab1, tab2, tab3 = st.tabs(["1~2학년 (현재)", "3학년 (준비)", "4학년 (실전)"])
+            
+            with tab1:
+                st.markdown("### 🌱 Foundation Phase")
+                st.markdown("""
+                - [x] **학점 관리:** 전공 기초 과목 3.8 이상 유지
+                - [ ] **동아리:** 교내 마케팅/창업 동아리 가입 (이번 달 리크루팅!)
+                - [ ] **자격증:** 컴퓨터활용능력 1급 (여름방학 추천)
+                """)
+                st.image("https://cdn-icons-png.flaticon.com/512/3064/3064197.png", width=100, caption="성장 중")
+            
+            with tab2:
+                st.markdown("### 🌿 Experience Phase")
+                st.write("직무 경험을 쌓아야 하는 시기입니다.")
+                st.write("- 산학협력 인턴십 도전")
+                st.write("- 교외 공모전 1회 수상 목표")
+
+        # --- 고학년용 전략 분석 ---
+        else:
+            st.title("📊 Gap Analysis & Strategy")
+            st.info(f"{st.session_state.user_info['target_job']} 직무 합격을 위한 전략 리포트입니다.")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("나의 강점/약점")
+                st.success("👍 **강점:** 관련 인턴 경험 1회, 높은 어학 성적")
+                st.error("👎 **약점:** 직무 관련 자격증 부재, 프로젝트 포트폴리오 미흡")
+            
+            with col2:
+                # 레이더 차트 (가상 데이터)
+                chart_data = pd.DataFrame({
+                    "항목": ["학점", "어학", "직무경험", "자격증", "수상"],
+                    "나의 점수": [80, 90, 70, 40, 50],
+                    "합격자 평균": [85, 85, 60, 80, 60]
+                })
+                st.bar_chart(chart_data.set_index("항목"))
+
+            st.divider()
+            st.markdown("### 💡 AI 전략 제안")
+            st.markdown(f"""
+            1. **단기 전략 (1개월):** 부족한 자격증(ADsP, SQLD)을 최우선으로 취득하세요.
+            2. **자소서 전략:** 인턴 경험에서 있었던 '문제 해결 에피소드'를 강조하세요. (키워드: 데이터, 협업)
+            3. **추천 기업:** {st.session_state.user_info['target_job']} 직무를 수시 채용 중인 **원티드, 토스**에 지원해보세요.
+            """)
+
+    elif menu == "📂 내 서류함":
+        st.title("📂 내 서류함")
+        st.write("업로드한 이력서와 자소서 관리 페이지입니다. (준비 중)")
+
+    elif menu == "⚙️ 설정":
+        st.title("설정")
+        if st.button("로그아웃"):
+            st.session_state.step = 1
+            st.rerun()
