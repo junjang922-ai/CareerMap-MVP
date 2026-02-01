@@ -1,135 +1,173 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import time # 로딩 효과를 위해 필요
 
-# 1. 페이지 설정
-st.set_page_config(
-    page_title="Career Map v2.0",
-    page_icon="🧭",
-    layout="wide"
-)
+# 1. 페이지 설정 및 세션 상태 초기화
+st.set_page_config(page_title="Career Map v3.0", page_icon="🧭", layout="wide")
 
-# 2. 스타일링 (Sky & Lemon 테마)
+# 세션 상태(단계별 이동) 관리
+if 'step' not in st.session_state:
+    st.session_state.step = 1
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = ""
+if 'analyzing' not in st.session_state:
+    st.session_state.analyzing = False
+
+# 스타일링
 st.markdown("""
     <style>
     .main {background-color: #F5F7FA;}
     h1 {color: #1A237E;}
-    .stButton>button {background-color: #4A90E2; color: white; border-radius: 10px; width: 100%;}
-    .metric-card {background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 50px; font-size: 18px;}
+    .success-box {padding: 20px; background-color: #E8F5E9; border-radius: 10px; border: 1px solid #4CAF50;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. 사이드바: 기본 프로필
-with st.sidebar:
-    st.title("🧭 Career Map")
-    st.caption("v2.0 | 정밀 진단 모드")
-    
-    st.header("👤 기본 프로필")
-    user_name = st.text_input("이름", "연세인")
-    univ = st.selectbox("소속 대학", ["연세대", "고려대", "서울대", "서성한", "기타"])
-    major = st.text_input("주전공", "경제학과")
-    grade = st.radio("현재 상태", ["3~4학년 (실전 취준)", "1~2학년 (진로 탐색)"])
-
-# 4. 메인 화면
-st.title(f"🚀 {user_name}님의 커리어 진단 리포트")
-
-# --- Track A: 실전 취준 (데이터 입력 강화) ---
-if grade == "3~4학년 (실전 취준)":
-    st.info("💡 더 정밀한 분석을 위해 상세 스펙을 입력해주세요. 입력값에 따라 합격 확률이 실시간으로 변합니다.")
-
-    col1, col2 = st.columns([1.2, 1])
-
-    with col1:
-        st.subheader("📝 상세 스펙 입력")
-
-        # 섹션 1: 학업 (Academic)
-        with st.expander("🎓 학업 및 전공 (Academic)", expanded=True):
-            gpa = st.slider("학점 (4.3 만점)", 2.0, 4.3, 3.5, step=0.1)
-            double_major = st.checkbox("복수/부전공 이수 중인가요?")
-
-        # 섹션 2: 어학 (Language)
-        with st.expander("🗣️ 어학 능력 (Global)", expanded=True):
-            toeic = st.slider("토익 점수", 0, 990, 800, step=10)
-            speaking = st.select_slider("스피킹 (OPIc/토스)", options=["None", "IM1", "IM2", "IM3", "IH", "AL"])
-            second_lang = st.checkbox("제2외국어 가능 (중국어/일본어 등)")
-
-        # 섹션 3: 실무 경험 (Experience) - 여기가 핵심!
-        with st.expander("💼 실무 및 활동 (Experience)", expanded=True):
-            intern_months = st.number_input("인턴십 근무 개월 수 (없으면 0)", min_value=0, max_value=24, value=0)
-            awards = st.number_input("교내외 공모전 수상 횟수", min_value=0, value=0)
-            activity = st.number_input("대외활동/동아리 경험 횟수", min_value=0, value=1)
-            license_count = st.number_input("직무 관련 자격증 개수 (컴활, CFA 등)", min_value=0, value=0)
-
+# --- STEP 1: 로그인 및 시작하기 ---
+if st.session_state.step == 1:
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.subheader("📊 AI 진단 결과")
+        st.write("")
+        st.write("")
+        st.markdown("<h1 style='text-align: center;'>🧭 Career Map</h1>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>불확실한 미래를 확신으로 바꾸는 첫 걸음</h4>", unsafe_allow_html=True)
+        st.divider()
         
-        # --- 점수 계산 로직 (가상 알고리즘) ---
-        # 기본점수 + 학점
-        score = 30 + (gpa * 8) 
+        name_input = st.text_input("이름을 입력해주세요", placeholder="예: 연세인")
+        password = st.text_input("비밀번호 (아무거나 입력)", type="password")
         
-        # 어학 가산점
-        if toeic >= 900: score += 10
-        elif toeic >= 800: score += 5
-        
-        if speaking in ["IH", "AL"]: score += 10
-        elif speaking == "IM3": score += 5
-        
-        if second_lang: score += 5
+        if st.button("로그인 / 시작하기"):
+            if name_input:
+                st.session_state.user_name = name_input
+                st.session_state.step = 2
+                st.rerun() # 페이지 새로고침
+            else:
+                st.warning("이름을 입력해주세요.")
 
-        # 경험 가산점 (여기가 중요)
-        score += (intern_months * 3) # 인턴 개월당 3점
-        score += (awards * 5)        # 수상 1회당 5점
-        score += (license_count * 3)
-        if double_major: score += 5
-
-        # 최대 99점 제한
-        final_prob = min(int(score), 99)
-
-        # 결과 카드 표시
-        st.markdown(f"""
-        <div class="metric-card">
-            <h3 style='margin:0; color:#555;'>예상 합격 확률</h3>
-            <h1 style='font-size: 60px; color:#4A90E2; margin:0;'>{final_prob}%</h1>
-            <p style='color:#666;'>지원자 상위 {max(1, 100-final_prob)}% 수준</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.write("") # 여백
-
-        # 피드백 메시지 로직
-        if intern_months == 0:
-            st.error("🚨 **치명적 약점:** 실무 경험(인턴)이 부족합니다. 요즘 채용은 '직무 경험'이 1순위입니다. 방학 인턴이 시급합니다.")
-        elif toeic < 850 and speaking in ["None", "IM1", "IM2"]:
-            st.warning("⚠️ **주의:** 어학 점수가 안정권보다 낮습니다. 서류 통과율을 높이려면 오픽 IH가 필요합니다.")
-        elif awards == 0 and activity < 2:
-            st.warning("⚠️ **주의:** 정량 스펙은 좋으나, 자소서에 쓸 '스토리(활동)'가 부족해 보입니다.")
-        elif final_prob >= 80:
-            st.success("🎉 **탁월함:** 스펙 밸런스가 아주 좋습니다! 이제 자소서와 면접 준비에 올인하세요.")
-        else:
-            st.info("💡 **조언:** 강점을 하나 더 만드세요. 자격증 취득이나 공모전 참여를 추천합니다.")
-
-        # 레이더 차트 데이터 (임시)
-        chart_data = pd.DataFrame({
-            "영역": ["학업", "어학", "실무경험", "대외활동"],
-            "내 점수": [gpa*20, toeic/10, min(intern_months*15, 100), min(activity*20, 100)],
-            "합격자 평균": [85, 90, 60, 70] # 3.5학점, 900점, 인턴 4개월, 활동 3회 기준
-        })
-        st.bar_chart(chart_data.set_index("영역"))
-
-
-# --- Track B: 저학년 (로드맵) ---
-else:
-    st.header("🗺️ 학년별 성장 로드맵")
-    st.info(f"{user_name}님의 전공({major})과 학년을 고려한 맞춤 로드맵입니다.")
+# --- STEP 2: 상황 선택 (온보딩) ---
+elif st.session_state.step == 2:
+    st.title(f"반갑습니다, {st.session_state.user_name}님! 👋")
+    st.subheader("현재 어떤 상황에 놓여 계신가요?")
     
     col1, col2 = st.columns(2)
-    with col1:
-        st.success("✅ **지금 꼭 해야 할 것 (Priority)**")
-        st.checkbox("학점 3.8 이상 만들기 (재수강 체크)")
-        st.checkbox("진로 탐색: 교내 취업지원팀 상담 받기")
-        st.checkbox("영어 기초 쌓기 (토익 700+ 목표)")
     
+    with col1:
+        with st.container(border=True):
+            st.markdown("### 🐣 진로 탐색 중 (저학년)")
+            st.write("아직 구체적인 직무를 정하지 못했어요.")
+            if st.button("로드맵 추천받기"):
+                st.session_state.grade_mode = "Junior"
+                st.session_state.step = 4 # 업로드 건너뛰기 가능
+                st.rerun()
+
     with col2:
-        st.warning("🔜 **미리 준비하면 좋은 것**")
-        st.checkbox("직무 관련 학회/동아리 리크루팅 일정 확인")
-        st.checkbox("컴활 / 한국사 자격증 (공기업/대기업 공통)")
+        with st.container(border=True):
+            st.markdown("### 🦅 실전 취업 준비 (고학년)")
+            st.write("목표 기업/직무가 있고 스펙 점검이 필요해요.")
+            if st.button("합격 확률 진단하기"):
+                st.session_state.grade_mode = "Senior"
+                st.session_state.step = 3
+                st.rerun()
+
+# --- STEP 3: 이력서 업로드 (AI 분석 시뮬레이션) ---
+elif st.session_state.step == 3:
+    st.title("📄 이력서/포트폴리오 분석")
+    st.info("기존에 가지고 계신 이력서나 자소서를 업로드하면, AI가 자동으로 스펙을 추출합니다.")
+    
+    uploaded_file = st.file_uploader("PDF 또는 Word 파일을 드래그하세요", type=['pdf', 'docx', 'txt'])
+    
+    if uploaded_file is not None:
+        st.success(f"✅ {uploaded_file.name} 업로드 성공!")
+        st.write("")
+        
+        if st.button("AI 정밀 분석 시작 (Click)"):
+            # --- AI 분석 퍼포먼스 (Loading Bar) ---
+            progress_text = "AI가 문서를 분석하고 있습니다..."
+            my_bar = st.progress(0, text=progress_text)
+
+            for percent_complete in range(100):
+                time.sleep(0.03) # 3초 동안 로딩
+                if percent_complete == 30:
+                    my_bar.progress(percent_complete + 1, text="텍스트 추출 중 (OCR)...")
+                elif percent_complete == 60:
+                    my_bar.progress(percent_complete + 1, text="핵심 역량 및 경험 데이터 파싱 중...")
+                elif percent_complete == 90:
+                    my_bar.progress(percent_complete + 1, text="합격 데이터와 비교 분석 중...")
+                else:
+                    my_bar.progress(percent_complete + 1)
+            
+            time.sleep(1)
+            st.session_state.step = 4
+            st.rerun()
+
+    st.markdown("---")
+    if st.button("건너뛰기 (수동 입력)"):
+        st.session_state.step = 4
+        st.rerun()
+
+# --- STEP 4: 최종 대시보드 (결과 화면) ---
+elif st.session_state.step == 4:
+    
+    # 1. 사이드바 (재설정)
+    with st.sidebar:
+        st.header(f"👤 {st.session_state.user_name}님의 프로필")
+        st.caption("AI가 추출한 정보입니다. 수정이 필요하면 변경하세요.")
+        
+        # 만약 파일을 업로드하고 왔다면, 값을 미리 채워주는 연출 (Simulated Parsed Data)
+        default_gpa = 3.8 # AI가 읽은 척
+        default_toeic = 850
+        
+        gpa = st.slider("학점", 2.0, 4.3, default_gpa, step=0.1)
+        toeic = st.slider("토익", 0, 990, default_toeic, step=10)
+        intern_months = st.number_input("인턴 경험(개월)", value=6) # AI가 찾은 척
+        
+        if st.button("처음으로 돌아가기"):
+            st.session_state.step = 1
+            st.rerun()
+
+    # 2. 메인 리포트
+    st.title("📊 AI 역량 진단 리포트")
+    
+    # 상단 요약 카드
+    st.markdown(f"""
+    <div class="success-box">
+        <h3>🎉 분석 완료!</h3>
+        <p>업로드하신 이력서에서 <b>[인턴 6개월]</b>, <b>[마케팅 학회 경험]</b>이 감지되었습니다.<br>
+        이를 바탕으로 계산된 <b>삼성전자 마케팅 직무</b> 합격 확률입니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("") # 여백
+
+    col1, col2 = st.columns([1, 1.5])
+    
+    with col1:
+        # 점수 계산 (단순 로직)
+        final_prob = min(40 + (gpa*5) + (intern_months*5), 96)
+        
+        st.markdown("### 예상 합격 확률")
+        st.markdown(f"<h1 style='font-size: 80px; color:#4A90E2;'>{int(final_prob)}%</h1>", unsafe_allow_html=True)
+        if final_prob > 80:
+            st.caption("안정권입니다! 면접 준비에 집중하세요.")
+        else:
+            st.caption("조금 더 스펙 보완이 필요합니다.")
+
+    with col2:
+        st.markdown("### ⚡ AI의 전략 제안")
+        tab1, tab2 = st.tabs(["강점 분석", "보완 로드맵"])
+        
+        with tab1:
+            st.write("👍 **Positives:**")
+            st.success("인턴십 6개월 경험이 가장 큰 경쟁력입니다.")
+            st.success("학점이 3.8로 성실함을 증명하고 있습니다.")
+            st.write("👎 **Improvements:**")
+            st.warning("비즈니스 영어(OPIc) 점수가 확인되지 않습니다.")
+        
+        with tab2:
+            st.write("🚀 **다음 달까지 할 일:**")
+            st.checkbox("OPIc IH 등급 취득하기", value=False)
+            st.checkbox("포트폴리오에 '데이터 분석' 역량 한 줄 추가하기", value=True)
+
+    st.divider()
+    st.markdown("#### 🎁 상세 리포트를 PDF로 받아보시겠습니까?")
+    st.button("이메일로 전체 리포트 전송받기")
