@@ -2,16 +2,16 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
-import graphviz # 로드맵 시각화용
+import graphviz # 로드맵 시각화용 (필수)
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v5.3", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v5.7", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
-    st.session_state.step = 1  # 1:입력 -> 2:트랙선택 -> 3:상세 -> 4:대시보드
+    st.session_state.step = 1
 if 'user_info' not in st.session_state:
-    st.session_state.user_info = {} # 유저 정보를 담을 딕셔너리
+    st.session_state.user_info = {}
 
 # 스타일링 (서핏 느낌의 카드 UI)
 st.markdown("""
@@ -20,42 +20,24 @@ st.markdown("""
     h1, h2, h3 {color: #1A237E; font-family: 'Pretendard', sans-serif;}
     .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 45px; font-weight: bold;}
     
-    /* 대시보드 카드 스타일 */
     .feed-card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-        border: 1px solid #E0E0E0;
-        transition: transform 0.2s;
+        background-color: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;
+        border: 1px solid #E0E0E0; transition: transform 0.2s;
     }
-    .feed-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        cursor: pointer;
-    }
-    .tag {
-        background-color: #E3F2FD;
-        color: #1565C0;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: bold;
-        margin-right: 5px;
-    }
-    .metric-box {
-        background-color: #fff;
-        border: 1px solid #eee;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
+    .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
+    .tag { background-color: #E3F2FD; color: #1565C0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; }
+    .metric-box { background-color: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; text-align: left; }
+    
+    /* AI 데이터 연동 박스 */
+    .ai-box {
+        background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (v5.2 유지)
+# STEP 1: 로그인 및 회원가입
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -66,7 +48,6 @@ if st.session_state.step == 1:
         
         tab1, tab2 = st.tabs(["로그인", "회원가입 (필수)"])
         
-        # [Tab 1] 로그인
         with tab1:
             with st.container(border=True):
                 login_id = st.text_input("아이디", key="login_id")
@@ -79,7 +60,6 @@ if st.session_state.step == 1:
                     else:
                         st.warning("아이디를 입력해주세요.")
 
-        # [Tab 2] 회원가입
         with tab2:
             st.info("👋 정확한 진단을 위해 기본 정보를 입력해주세요.")
             with st.form("signup_form"):
@@ -104,12 +84,7 @@ if st.session_state.step == 1:
                 if submit_btn:
                     if new_id and new_pw and name and phone:
                         st.session_state.user_info = {
-                            'id': new_id,
-                            'name': name,
-                            'gender': gender,
-                            'dob': str(dob),
-                            'phone': phone,
-                            'email': email
+                            'id': new_id, 'name': name, 'gender': gender, 'dob': str(dob), 'phone': phone, 'email': email
                         }
                         st.success("가입이 완료되었습니다!")
                         time.sleep(1)
@@ -119,17 +94,14 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택 (v5.2 유지)
+# STEP 2: 트랙 선택
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
-    
     st.title(f"{user_name}님, 환영합니다! 👋")
     st.subheader("현재 상황에 맞는 트랙을 선택하세요.")
-    st.markdown("선택하신 트랙에 따라 **전혀 다른 솔루션**이 제공됩니다.")
     
     col1, col2 = st.columns(2)
-    
     with col1:
         with st.container(border=True):
             st.markdown("### 🐣 저학년 (1~2학년)")
@@ -139,7 +111,6 @@ elif st.session_state.step == 2:
                 st.session_state.user_info['track'] = 'Junior'
                 st.session_state.step = 3
                 st.rerun()
-                
     with col2:
         with st.container(border=True):
             st.markdown("### 🦅 고학년 (3~4학년/취준)")
@@ -151,13 +122,12 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 파일 업로드 (v5.2 유지)
+# STEP 3: 상세 진단 & 역량검사 추가 (New!)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
-    st.title("🧩 맞춤형 설계를 위한 추가 정보")
+    st.title("🧩 데이터 연동 및 진단")
     
-    # 1. 학적 및 직무 (필수)
     col1, col2 = st.columns(2)
     with col1:
         univ = st.text_input("소속 대학", placeholder="예: 연세대학교")
@@ -167,92 +137,112 @@ elif st.session_state.step == 3:
     target_job = st.text_input("관심 직무/분야 (필수)", placeholder="예: 마케팅, 데이터 분석, 금융권 등")
     
     st.write("")
-    st.markdown("### 🕵️ 정밀 진단 (선택 사항)")
-    st.caption("입력하시면 분석 정확도가 **200%** 올라갑니다.")
     
-    # 2. 성향/인성 검사
-    with st.expander("🧠 간단 성향/인성 검사 진행하기"):
-        st.write("나에게 맞는 업무 스타일을 찾아드립니다.")
-        q1 = st.radio("1. 새로운 문제를 마주했을 때 나는?", ["논리적으로 분석하여 근거를 찾는다", "직관적으로 아이디어를 낸다", "주변 사람들과 논의하여 해결한다"])
-        q2 = st.radio("2. 선호하는 조직 문화는?", ["체계적이고 역할이 분명한 곳", "자율적이고 성과 중심인 곳", "수평적이고 협력적인 곳"])
-        st.checkbox("진단 결과 반영하기", value=True)
+    # --- [역량검사 추가 기능] ---
+    st.markdown("### 🧬 AI 역량/성향 데이터 연동")
+    with st.container(border=True):
+        st.markdown("""
+        <div class="ai-box">
+            <b>📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
+            결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        has_test = st.radio("검사 결과 보유 여부", ["네, 있습니다.", "아니요, 없습니다."], horizontal=True)
+        
+        test_keyword = "미입력"
+        if has_test == "네, 있습니다.":
+            col_j1, col_j2 = st.columns(2)
+            with col_j1:
+                st.file_uploader("검사 결과표 업로드 (PDF/JPG)", type=['pdf', 'jpg', 'png'])
+            with col_j2:
+                test_keyword = st.selectbox("결과표의 핵심 성향 키워드는?", 
+                                             ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
+                if test_keyword != "선택해주세요":
+                    st.success(f"✅ '{test_keyword}' 성향 데이터를 반영합니다.")
+        else:
+            st.info("자체 간편 진단으로 대체합니다.")
+            with st.expander("간편 성향 진단 진행하기"):
+                st.radio("선호하는 업무 스타일", ["혼자 깊게 파고들기", "함께 토론하며 풀기"])
 
-    # 3. 파일 업로드
-    uploaded_file = st.file_uploader("📂 이력서/자소서/포트폴리오 업로드 (PDF, Word)", type=['pdf', 'docx'])
+    st.write("")
+    uploaded_file = st.file_uploader("📂 이력서/자소서 업로드 (Hard Skill 분석용)", type=['pdf', 'docx'])
     
     st.write("")
-    if st.button("🚀 나만의 커리어 대시보드 생성하기"):
+    if st.button("🚀 AI 통합 분석 시작하기"):
         if target_job:
-            # 정보 업데이트
             st.session_state.user_info.update({
-                'univ': univ,
-                'major': major,
-                'target_job': target_job
+                'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
             })
             
             # 로딩 연출
-            progress_text = "AI가 회원님의 성향과 스펙을 분석 중입니다..."
+            progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
             my_bar = st.progress(0, text=progress_text)
-            
             for percent_complete in range(100):
                 time.sleep(0.02)
-                if percent_complete == 30:
-                    my_bar.progress(percent_complete + 1, text="텍스트 추출 중 (OCR)...")
-                elif percent_complete == 60:
-                    my_bar.progress(percent_complete + 1, text="핵심 역량 파싱 및 매칭 중...")
-                elif percent_complete == 90:
-                    my_bar.progress(percent_complete + 1, text="합격자 데이터와 비교 분석 중...")
-                else:
-                    my_bar.progress(percent_complete + 1)
+                my_bar.progress(percent_complete + 1)
             
-            time.sleep(0.5)
             st.session_state.step = 4
             st.rerun()
         else:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 통합)
+# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 완벽 복원)
 # ==========================================
 elif st.session_state.step == 4:
     
     user_name = st.session_state.user_info.get('name', 'User')
     target_job = st.session_state.user_info.get('target_job', '직무')
-    univ = st.session_state.user_info.get('univ', '대학교')
+    test_key = st.session_state.user_info.get('test_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
     # [사이드바]
     with st.sidebar:
         st.title("🧭 Career Map")
         st.write(f"**{user_name}**님")
-        st.caption(f"{univ} | {track}")
+        st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
+        
+        if "분석가" in test_key or "전략가" in test_key:
+            st.info(f"🧬 **DNA:** {test_key}")
+        elif "소통가" in test_key or "개척자" in test_key:
+            st.success(f"🧬 **DNA:** {test_key}")
+            
         st.divider()
         menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
-        st.info("💡 **Premium 기능**\n현직자 1:1 멘토링 매칭")
+        st.markdown("💡 **Premium Service**")
+        st.write("현직자 1:1 멘토링 매칭")
 
     # [메인 화면 1] 홈 (Feed)
     if menu == "🏠 홈 (Feed)":
         st.header(f"🔥 {target_job} 분야 트렌드")
         
+        recomm_text = "회원님의 스펙"
+        if "분석가" in test_key or "전략가" in test_key:
+            recomm_text = f"회원님의 **{test_key} 성향**과 **스펙**"
+        
         st.markdown(f"""
-        <div style="background: linear-gradient(90deg, #4A90E2 0%, #00E676 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
-            <h2 style='color:white; margin:0;'>📢 {user_name}님을 위한 추천 공고</h2>
-            <p style='margin:5px 0 0 0;'>회원님의 스펙과 <b>92% 일치</b>하는 인턴 공고가 떴어요! 확인해보세요.</p>
+        <div style="background: linear-gradient(90deg, #6A1B9A 0%, #AB47BC 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
+            <h2 style='color:white; margin:0;'>📢 AI 성향/역량 데이터 분석 완료!</h2>
+            <p style='margin:5px 0 0 0;'>{recomm_text}을 결합하여 <b>{target_job} 직무 적합도 95%</b>로 확인되었습니다.</p>
         </div>
         """, unsafe_allow_html=True)
         
         col1, col2 = st.columns([2, 1])
         with col1:
             st.subheader("Today's Pick")
+            
             st.markdown(f"""
             <div class="feed-card">
                 <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
-                <h4 style="margin: 10px 0;">[카카오] {target_job} 직무 채용 연계형 인턴 모집</h4>
-                <p style="color:#666; font-size:14px; margin:0;">서류 마감까지 D-3 | <b>합격 예측: 매우 높음</b></p>
+                <h4 style="margin: 10px 0;">[LG CNS] {target_job} 신입/인턴 채용</h4>
+                <p style="color:#666; font-size:14px; margin:0;">
+                🧬 <b>{test_key}</b> 인재를 선호하는 공고입니다! (성향 매칭됨)</p>
             </div>
             """, unsafe_allow_html=True)
+            
             st.markdown("""
             <div class="feed-card">
                 <span class="tag">꿀팁</span>
@@ -260,6 +250,7 @@ elif st.session_state.step == 4:
                 <p style="color:#666; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
             </div>
             """, unsafe_allow_html=True)
+
             st.markdown(f"""
             <div class="feed-card">
                 <span class="tag">멘토링</span>
@@ -269,9 +260,9 @@ elif st.session_state.step == 4:
             """, unsafe_allow_html=True)
 
         with col2:
-            st.subheader("실시간 인기 기업")
+            st.subheader("실시간 랭킹")
             st.markdown("""
-            <div class="metric-box" style="text-align:left;">
+            <div class="metric-box">
                 <p>🥇 <b>삼성전자</b> <span style="color:red; float:right;">▲ 2</span></p>
                 <p>🥈 <b>SK하이닉스</b> <span style="color:gray; float:right;">-</span></p>
                 <p>🥉 <b>네이버</b> <span style="color:blue; float:right;">▼ 1</span></p>
@@ -280,7 +271,7 @@ elif st.session_state.step == 4:
             </div>
             """, unsafe_allow_html=True)
 
-    # [메인 화면 2] 로드맵/전략 (New! v5.3 기능 적용)
+    # [메인 화면 2] 로드맵/전략 (Graphviz 복원!)
     elif menu == "🗺️ 나의 로드맵/전략":
         
         # --- [1] 저학년: Roadmap.sh 스타일 (Graphviz) ---
@@ -291,14 +282,14 @@ elif st.session_state.step == 4:
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                # Graphviz로 roadmap.sh 스타일 그리기
+                # Graphviz로 roadmap.sh 스타일 그리기 (v5.3 코드 복원)
                 graph = graphviz.Digraph()
-                graph.attr(rankdir='TB') # 위에서 아래로
+                graph.attr(rankdir='TB') # 위에서 아래로 (Top to Bottom)
                 
-                # 노드 스타일
+                # 노드 스타일 설정
                 graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
                 
-                # 단계별 노드
+                # 단계별 노드 생성
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
                 graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
                 graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
@@ -307,7 +298,13 @@ elif st.session_state.step == 4:
                 graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
                 graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
 
-                # 연결
+                # 성향에 따른 시각적 강조
+                if "분석가" in test_key:
+                    graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
+                elif "소통가" in test_key:
+                    graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
+
+                # 연결선 그리기
                 graph.edge('Start', 'GPA')
                 graph.edge('Start', 'Eng')
                 graph.edge('GPA', 'Club')
@@ -341,7 +338,7 @@ elif st.session_state.step == 4:
             st.title("📊 합격 전략 리포트")
             st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
             
-            # 1. 경쟁률 및 내 위치
+            # 1. 경쟁률 및 내 위치 (게이지 차트 느낌)
             st.subheader("1. 나의 합격 경쟁력")
             col_a, col_b = st.columns([1, 2])
             with col_a:
@@ -383,16 +380,14 @@ elif st.session_state.step == 4:
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
-        st.info("업로드한 이력서와 포트폴리오를 관리하는 공간입니다.")
-        st.file_uploader("추가 파일 업로드")
+        st.write("업로드된 파일 목록:")
+        st.markdown("- 📄 `AI_역량검사_결과표.pdf`")
+        st.markdown("- 📄 `이력서_v1.pdf`")
+        st.button("파일 추가하기")
 
     elif menu == "⚙️ 설정":
         st.title("설정")
         st.write(f"ID: {st.session_state.user_info.get('id', '-')}")
-        st.write(f"Email: {st.session_state.user_info.get('email', '-')}")
-        st.write(f"Phone: {st.session_state.user_info.get('phone', '-')}")
-        
-        st.divider()
         if st.button("로그아웃"):
             st.session_state.step = 1
             st.rerun()
