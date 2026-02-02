@@ -2,19 +2,17 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
-import random # 다이어리 랜덤 질문 및 AI 생성용
-import graphviz # 로드맵 시각화용 (필수)
+import random
+import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.4", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.5", page_icon="🧭", layout="wide")
 
-# 세션 상태 관리
+# 세션 상태 관리 (기능 100% 유지)
 if 'step' not in st.session_state:
     st.session_state.step = 1
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
-
-# 다이어리 데이터 초기화
 if 'diary_logs' not in st.session_state:
     st.session_state.diary_logs = [
         {"date": "2026-02-01", "q": "오늘 가장 뿌듯했던 일은?", "a": "사수님께 엑셀 정리 잘했다고 칭찬받음! VLOOKUP 드디어 마스터했다."},
@@ -23,32 +21,152 @@ if 'diary_logs' not in st.session_state:
 if 'diary_streak' not in st.session_state:
     st.session_state.diary_streak = 3
 
-# 스타일링
+# ==============================================================================
+# 🎨 UI/UX Design System (Toss/Surfit Style)
+# ==============================================================================
 st.markdown("""
     <style>
-    .main {background-color: #F8F9FA;}
-    h1, h2, h3 {color: #1A237E; font-family: 'Pretendard', sans-serif;}
-    .stButton>button {background-color: #4A90E2; color: white; border-radius: 8px; width: 100%; height: 45px; font-weight: bold;}
+    /* 1. 폰트 및 기본 배경 설정 */
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
     
-    .feed-card {
-        background-color: white; padding: 20px; border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;
-        border: 1px solid #E0E0E0; transition: transform 0.2s;
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', sans-serif;
+        color: #191F28; /* 진한 회색 (가독성) */
     }
-    .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
-    .tag { background-color: #E3F2FD; color: #1565C0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; }
-    .metric-box { background-color: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; text-align: left; }
     
-    /* AI 데이터 연동 박스 */
-    .ai-box { background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-    
-    /* 다이어리 스타일 */
-    .diary-card { background-color: #FFF3E0; border-left: 5px solid #FF9800; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .question-box { font-size: 18px; font-weight: bold; color: #E65100; margin-bottom: 10px; }
+    /* 전체 배경색: 부드러운 그레이 (Toss Style) */
+    .stApp {
+        background-color: #F2F4F6;
+    }
 
-    /* AI 자소서 생성 스타일 */
-    .generator-box { background-color: #E8EAF6; border: 1px solid #3F51B5; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    .source-badge { background-color: #fff; border: 1px solid #ccc; padding: 5px 10px; border-radius: 15px; font-size: 12px; margin-right: 5px; display: inline-block; }
+    /* 2. 제목 및 텍스트 스타일 */
+    h1 {
+        color: #191F28;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    h2, h3 {
+        color: #333D4B;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+    }
+    p {
+        color: #4E5968;
+        line-height: 1.6;
+    }
+
+    /* 3. 버튼 (Primary Button) - 토스 블루 */
+    .stButton > button {
+        background-color: #3182F6;
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 0.75rem 1.5rem;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .stButton > button:hover {
+        background-color: #1B64DA;
+        transform: translateY(-2px);
+        box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+    .stButton > button:active {
+        background-color: #0050B3;
+        transform: translateY(0);
+    }
+
+    /* 4. 카드 디자인 (Rounded & Shadow) */
+    .feed-card, .metric-box, .ai-box, .generator-box {
+        background-color: #FFFFFF;
+        padding: 24px;
+        border-radius: 20px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0,0,0,0.02);
+        margin-bottom: 20px;
+        transition: transform 0.2s ease;
+    }
+    .feed-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+    }
+    
+    /* 다이어리 카드 (Post-it 느낌 개선) */
+    .diary-card {
+        background-color: #FFF8E1; /* 연한 옐로우 */
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #FFE0B2;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* 5. 태그 (뱃지) 스타일 */
+    .tag {
+        display: inline-block;
+        background-color: #E8F3FF;
+        color: #3182F6;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        margin-right: 6px;
+        margin-bottom: 8px;
+    }
+    .source-badge {
+        display: inline-block;
+        background-color: #F9FAFB;
+        border: 1px solid #E5E8EB;
+        color: #6B7684;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+
+    /* 6. 입력창 (Input) 스타일 */
+    .stTextInput > div > div > input {
+        border-radius: 12px;
+        border: 1px solid #E5E8EB;
+        background-color: #FFFFFF;
+        padding: 10px 12px;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #3182F6;
+        box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.2);
+    }
+    
+    /* 7. 그라데이션 배너 */
+    .banner-gradient {
+        background: linear-gradient(135deg, #3182F6 0%, #0052CC 100%);
+        padding: 30px;
+        border-radius: 20px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 16px rgba(49, 130, 246, 0.25);
+    }
+    .banner-gradient h2 { color: white !important; }
+    .banner-gradient p { color: rgba(255,255,255,0.9) !important; }
+
+    /* 8. 탭 (Tabs) 스타일 커스텀 */
+    button[data-baseweb="tab"] {
+        border-radius: 8px !important;
+        font-weight: 600;
+    }
+    
+    /* 9. 사이드바 스타일 */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #F2F4F6;
+    }
+    
+    /* 10. 기타 유틸리티 */
+    hr { margin: 24px 0; border-color: #E5E8EB; }
+    
     </style>
     """, unsafe_allow_html=True)
 
@@ -58,16 +176,20 @@ st.markdown("""
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        st.markdown("<h1 style='text-align: center; margin-top: 50px;'>🧭 Career Map</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #666;'>불확실한 미래를 데이터로 확신하다.</p>", unsafe_allow_html=True)
+        st.write("")
+        st.write("")
+        st.markdown("<h1 style='text-align: center; font-size: 48px;'>🧭</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Career Map</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #8B95A1; font-size: 18px;'>불확실한 미래를 데이터로 확신하다</p>", unsafe_allow_html=True)
         st.write("")
         
-        tab1, tab2 = st.tabs(["로그인", "회원가입 (필수)"])
+        tab1, tab2 = st.tabs(["로그인", "회원가입"])
         
         with tab1:
             with st.container(border=True):
-                login_id = st.text_input("아이디", key="login_id")
-                login_pw = st.text_input("비밀번호", type="password", key="login_pw")
+                login_id = st.text_input("아이디", key="login_id", placeholder="ID를 입력하세요")
+                login_pw = st.text_input("비밀번호", type="password", key="login_pw", placeholder="비밀번호를 입력하세요")
+                st.write("")
                 if st.button("로그인"):
                     if login_id:
                         st.session_state.user_info['name'] = login_id + "님"
@@ -94,7 +216,7 @@ if st.session_state.step == 1:
                 
                 email = st.text_input("이메일 (결과 리포트 발송용)")
                 
-                st.markdown("---")
+                st.write("")
                 submit_btn = st.form_submit_button("가입하고 진단 시작하기 🚀")
                 
                 if submit_btn:
@@ -110,25 +232,34 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택 (Global 포함)
+# STEP 2: 트랙 선택
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
-    st.title(f"{user_name}님, 환영합니다! 👋")
-    st.subheader("현재 상황에 맞는 트랙을 선택하세요.")
+    st.title(f"반가워요, {user_name}! 👋")
+    st.subheader("어떤 도움이 필요하신가요?")
     
-    # 내국인 vs 외국인 탭 분리
+    # 탭 디자인 (이모지 활용)
     tab_kor, tab_glo = st.tabs(["🇰🇷 내국인 (Korean)", "🌏 외국인 유학생 (Global)"])
     
     # 1. 내국인 트랙
     with tab_kor:
+        st.write("")
         col1, col2 = st.columns(2)
         with col1:
             with st.container(border=True):
                 st.markdown("### 🐣 저학년 (1~2학년)")
                 st.write("아직 구체적인 진로를 정하지 못했어요.")
-                st.info("🎯 **제공 서비스:**\n- 커리어 성향(DNA) 진단\n- 학년별 필수 로드맵\n- 교내외 대외활동 추천")
-                if st.button("저학년 트랙 선택", key="btn_junior"):
+                st.write("")
+                st.markdown("""
+                <div style='background-color:#F2F4F6; padding:15px; border-radius:12px; font-size:14px; color:#4E5968;'>
+                ✅ <b>커리어 성향(DNA) 진단</b><br>
+                ✅ <b>학년별 필수 로드맵</b><br>
+                ✅ <b>대외활동 추천</b>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("저학년 트랙 시작", key="btn_junior"):
                     st.session_state.user_info['track'] = 'Junior'
                     st.session_state.step = 3
                     st.rerun()
@@ -136,26 +267,42 @@ elif st.session_state.step == 2:
             with st.container(border=True):
                 st.markdown("### 🦅 고학년 (3~4학년/취준)")
                 st.write("목표 직무가 있고, 합격이 목표예요.")
-                st.info("🎯 **제공 서비스:**\n- 이력서/자소서 AI 분석\n- 합격 확률 시뮬레이션\n- 부족한 스펙(Gap) 진단")
-                if st.button("고학년 트랙 선택", key="btn_senior"):
+                st.write("")
+                st.markdown("""
+                <div style='background-color:#F2F4F6; padding:15px; border-radius:12px; font-size:14px; color:#4E5968;'>
+                ✅ <b>이력서/자소서 AI 분석</b><br>
+                ✅ <b>합격 확률 시뮬레이션</b><br>
+                ✅ <b>부족한 스펙(Gap) 진단</b>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
+                if st.button("고학년 트랙 시작", key="btn_senior"):
                     st.session_state.user_info['track'] = 'Senior'
                     st.session_state.step = 3
                     st.rerun()
 
     # 2. 외국인 트랙
     with tab_glo:
-        st.info("💡 **For International Students:** Visa(E-7) & Career Solution")
+        st.write("")
+        st.markdown("""
+        <div style="background-color:#E8F3FF; border: 1px solid #3182F6; padding: 15px; border-radius: 12px; color: #1B64DA; margin-bottom: 20px;">
+        💡 <b>For International Students:</b> Visa(E-7) & Career Solution
+        </div>
+        """, unsafe_allow_html=True)
+        
         col_g1, col_g2 = st.columns([1, 2])
         with col_g1:
-            st.image("https://cdn-icons-png.flaticon.com/512/2014/2014916.png", width=150)
+            # 이미지 대신 이모지로 미니멀하게 대체 (디자인 통일성)
+            st.markdown("<div style='font-size:100px; text-align:center;'>🌏</div>", unsafe_allow_html=True)
         with col_g2:
-            st.markdown("### 🌏 글로벌 인재 트랙")
+            st.markdown("### Global Talent Track")
             st.write("한국 취업을 목표로 하는 유학생을 위한 비자 & 커리어 통합 솔루션입니다.")
             st.markdown("""
             - 🛂 **Visa Roadmap:** D-2 $\rightarrow$ D-10 $\rightarrow$ E-7 비자 취득 확률 분석
             - 🗣️ **Korean Skill:** TOPIK 점수 기반 직무 추천
             - 🏢 **Company Match:** 외국인 채용 우대 기업 매칭
             """)
+            st.write("")
             if st.button("Start Global Track 🚀", key="btn_global"):
                 st.session_state.user_info['track'] = 'Global'
                 st.session_state.step = 3
@@ -167,7 +314,9 @@ elif st.session_state.step == 2:
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
     st.title("🧩 데이터 연동 및 진단")
-    
+    st.write("더 정확한 분석을 위해 추가 정보를 입력해주세요.")
+    st.write("")
+
     # [Branch] 외국인 트랙
     if track == 'Global':
         st.info("🌏 **Global User Profile Setting**")
@@ -217,30 +366,31 @@ elif st.session_state.step == 3:
         st.write("")
         
         st.markdown("### 🧬 AI 역량/성향 데이터 연동")
-        with st.container(border=True):
-            st.markdown("""
-            <div class="ai-box">
-                <b>📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
-                결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.
-            </div>
-            """, unsafe_allow_html=True)
-            
-            has_test = st.radio("검사 결과 보유 여부", ["네, 있습니다.", "아니요, 없습니다."], horizontal=True)
-            
-            test_keyword = "미입력"
-            if has_test == "네, 있습니다.":
-                col_j1, col_j2 = st.columns(2)
-                with col_j1:
-                    st.file_uploader("검사 결과표 업로드 (PDF/JPG)", type=['pdf', 'jpg', 'png'])
-                with col_j2:
-                    test_keyword = st.selectbox("결과표의 핵심 성향 키워드는?", 
-                                                 ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
-                    if test_keyword != "선택해주세요":
-                        st.success(f"✅ '{test_keyword}' 성향 데이터를 반영합니다.")
-            else:
-                st.info("자체 간편 진단으로 대체합니다.")
-                with st.expander("간편 성향 진단 진행하기"):
-                    st.radio("선호하는 업무 스타일", ["혼자 깊게 파고들기", "함께 토론하며 풀기"])
+        
+        # 디자인 개선된 박스
+        st.markdown("""
+        <div class="ai-box" style="background-color:#F9FAFB; border:1px solid #E5E8EB; box-shadow:none;">
+            <b style="color:#3182F6;">📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
+            <span style="color:#6B7684;">결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        has_test = st.radio("검사 결과 보유 여부", ["네, 있습니다.", "아니요, 없습니다."], horizontal=True)
+        
+        test_keyword = "미입력"
+        if has_test == "네, 있습니다.":
+            col_j1, col_j2 = st.columns(2)
+            with col_j1:
+                st.file_uploader("검사 결과표 업로드 (PDF/JPG)", type=['pdf', 'jpg', 'png'])
+            with col_j2:
+                test_keyword = st.selectbox("결과표의 핵심 성향 키워드는?", 
+                                             ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
+                if test_keyword != "선택해주세요":
+                    st.success(f"✅ '{test_keyword}' 성향 데이터를 반영합니다.")
+        else:
+            st.info("자체 간편 진단으로 대체합니다.")
+            with st.expander("간편 성향 진단 진행하기"):
+                st.radio("선호하는 업무 스타일", ["혼자 깊게 파고들기", "함께 토론하며 풀기"])
 
         st.write("")
         uploaded_file = st.file_uploader("📂 이력서/자소서 업로드 (Hard Skill 분석용)", type=['pdf', 'docx'])
@@ -252,6 +402,7 @@ elif st.session_state.step == 3:
                     'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
                 })
                 
+                # 로딩바 디자인은 Streamlit 기본값 사용 (커스텀 불가 영역)
                 progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
                 my_bar = st.progress(0, text=progress_text)
                 for percent_complete in range(100):
@@ -273,26 +424,26 @@ elif st.session_state.step == 4:
     test_key = st.session_state.user_info.get('test_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
-    # [사이드바]
+    # [사이드바] - 깔끔한 디자인
     with st.sidebar:
         st.title("🧭 Career Map")
         st.write(f"**{user_name}**님")
         st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
         
+        # 뱃지 스타일 개선
         if track == 'Global':
-            st.success(f"🛂 **Visa:** {st.session_state.user_info.get('visa_type', 'D-2')}")
+            st.markdown(f"<span class='tag'>🛂 Visa: {st.session_state.user_info.get('visa_type', 'D-2')}</span>", unsafe_allow_html=True)
         else:
             if "분석가" in test_key or "전략가" in test_key:
-                st.info(f"🧬 **DNA:** {test_key}")
+                st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             elif "소통가" in test_key or "개척자" in test_key:
-                st.success(f"🧬 **DNA:** {test_key}")
+                st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             
         st.divider()
         menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
-        st.markdown("💡 **Premium Service**")
-        st.write("현직자 1:1 멘토링 매칭")
+        st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # [1] 홈 (Feed)
     if menu == "🏠 홈 (Feed)":
@@ -300,8 +451,9 @@ elif st.session_state.step == 4:
         
         # [Branch] Global Feed
         if track == 'Global':
+             # 그라데이션 배너 (Design System Class 사용)
              st.markdown(f"""
-            <div style="background: linear-gradient(90deg, #1565C0 0%, #0D47A1 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
+            <div class="banner-gradient">
                 <h2 style='color:white; margin:0;'>🌏 Global Talent Analysis</h2>
                 <p style='margin:5px 0 0 0;'>Visa Probability: <b>85%</b> (Safe)<br>
                 Based on your TOPIK {st.session_state.user_info.get('topik', 'Level 4')} and Major.</p>
@@ -309,15 +461,15 @@ elif st.session_state.step == 4:
             """, unsafe_allow_html=True)
              st.info("📢 **Visa Alert:** D-10 visa regulations have been updated. (Check Now)")
              
-        # [Branch] Korean Feed (v6.2 Full Content 복원!)
+        # [Branch] Korean Feed
         else:
             recomm_text = "회원님의 스펙"
             if "분석가" in test_key or "전략가" in test_key:
                 recomm_text = f"회원님의 **{test_key} 성향**과 **스펙**"
             
-            # 배너 복원
+            # 그라데이션 배너 (Design System Class 사용)
             st.markdown(f"""
-            <div style="background: linear-gradient(90deg, #6A1B9A 0%, #AB47BC 100%); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px;">
+            <div class="banner-gradient">
                 <h2 style='color:white; margin:0;'>📢 AI 성향/역량 데이터 분석 완료!</h2>
                 <p style='margin:5px 0 0 0;'>{recomm_text}을 결합하여 <b>{target_job} 직무 적합도 95%</b>로 확인되었습니다.</p>
             </div>
@@ -327,7 +479,6 @@ elif st.session_state.step == 4:
             with col1:
                 st.subheader("Today's Pick")
                 
-                # 카드 1: 채용 (잡다 연동 강조)
                 st.markdown(f"""
                 <div class="feed-card">
                     <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
@@ -337,7 +488,6 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # 카드 2: 꿀팁
                 st.markdown("""
                 <div class="feed-card">
                     <span class="tag">꿀팁</span>
@@ -346,7 +496,6 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-                # 카드 3: 멘토링
                 st.markdown(f"""
                 <div class="feed-card">
                     <span class="tag">멘토링</span>
@@ -356,7 +505,6 @@ elif st.session_state.step == 4:
                 """, unsafe_allow_html=True)
 
             with col2:
-                # 우측 1: 랭킹
                 st.subheader("실시간 랭킹")
                 st.markdown("""
                 <div class="metric-box">
@@ -369,7 +517,6 @@ elif st.session_state.step == 4:
                 """, unsafe_allow_html=True)
                 
                 st.write("")
-                # 우측 2: 일정 (복원됨!)
                 st.subheader("📅 주요 일정")
                 st.markdown("""
                 <div class="metric-box">
@@ -423,7 +570,7 @@ elif st.session_state.step == 4:
             with col1:
                 graph = graphviz.Digraph()
                 graph.attr(rankdir='TB') 
-                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
+                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#3182F6', fontname="sans-serif")
                 
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
                 graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
@@ -449,14 +596,13 @@ elif st.session_state.step == 4:
                 st.graphviz_chart(graph)
             
             with col2:
-                st.info("💡 **LinkedIn Insight**")
-                st.markdown(f"""
+                st.markdown("""
                 <div class="feed-card">
                     <h4>📊 선배들의 경로 분석</h4>
-                    <p><b>{target_job}</b> 합격자의 <b>65%</b>는<br>
+                    <p style="font-size:14px;"><b>{0}</b> 합격자의 <b>65%</b>는<br>
                     2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
                 </div>
-                """, unsafe_allow_html=True)
+                """.format(target_job), unsafe_allow_html=True)
                 st.write("🚀 **추천 활동**")
                 st.checkbox("SQLD 자격증 따기")
 
@@ -486,7 +632,7 @@ elif st.session_state.step == 4:
             st.divider()
             st.subheader("3. Next Step Recommendation")
             st.markdown(f"""
-            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px;">
+            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px; color:#2E7D32;">
                 <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
                 <ul>
                     <li><b>[1개월 내]</b> 오픽 IH 취득하기</li>
@@ -501,8 +647,8 @@ elif st.session_state.step == 4:
         st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요.")
         
         st.markdown(f"""
-        <div style="background-color:#FFF3E0; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center;">
-            <h3 style="color:#E65100; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
+        <div style="background-color:#FFF3E0; padding:20px; border-radius:16px; margin-bottom:20px; text-align:center; border:1px solid #FFE0B2;">
+            <h3 style="color:#FF9800; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
         </div>
         """, unsafe_allow_html=True)
         
@@ -531,9 +677,9 @@ elif st.session_state.step == 4:
             for log in st.session_state.diary_logs:
                 st.markdown(f"""
                 <div class="diary-card">
-                    <span style="font-size:12px; color:#666;">{log['date']}</span><br>
+                    <span style="font-size:12px; color:#9E9E9E;">{log['date']}</span><br>
                     <b>Q. {log['q']}</b><br>
-                    <span style="color:#333;">{log['a']}</span>
+                    <span style="color:#5D4037;">{log['a']}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
