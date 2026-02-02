@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.5", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.6", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리 (기능 100% 유지)
 if 'step' not in st.session_state:
@@ -22,151 +22,126 @@ if 'diary_streak' not in st.session_state:
     st.session_state.diary_streak = 3
 
 # ==============================================================================
-# 🎨 UI/UX Design System (Toss/Surfit Style)
+# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow)
 # ==============================================================================
 st.markdown("""
     <style>
-    /* 1. 폰트 및 기본 배경 설정 */
+    /* 1. 폰트 및 기본 배경 */
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
     
     html, body, [class*="css"] {
         font-family: 'Pretendard', sans-serif;
-        color: #191F28; /* 진한 회색 (가독성) */
+        color: #333333; /* Text Black */
     }
     
-    /* 전체 배경색: 부드러운 그레이 (Toss Style) */
+    /* 전체 배경: 아주 연한 블루 그레이 */
     .stApp {
-        background-color: #F2F4F6;
+        background-color: #F7F9FC;
     }
 
-    /* 2. 제목 및 텍스트 스타일 */
-    h1 {
-        color: #191F28;
+    /* 2. 타이포그래피 */
+    h1, h2, h3 {
+        color: #2C3E50;
         font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    h2, h3 {
-        color: #333D4B;
-        font-weight: 600;
-        letter-spacing: -0.3px;
     }
     p {
-        color: #4E5968;
+        color: #546E7A;
         line-height: 1.6;
     }
 
-    /* 3. 버튼 (Primary Button) - 토스 블루 */
+    /* 3. 버튼 (Primary: Soft Azure) */
     .stButton > button {
-        background-color: #3182F6;
+        background-color: #4A90E2; /* Clubmate Blue */
         color: white;
         border: none;
-        border-radius: 16px;
-        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
         font-size: 16px;
         font-weight: 600;
         width: 100%;
+        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.2);
         transition: all 0.2s ease;
-        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
     }
     .stButton > button:hover {
-        background-color: #1B64DA;
+        background-color: #357ABD;
         transform: translateY(-2px);
-        box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
     }
-    .stButton > button:active {
-        background-color: #0050B3;
-        transform: translateY(0);
-    }
-
-    /* 4. 카드 디자인 (Rounded & Shadow) */
+    
+    /* 4. 카드 디자인 (Clean & Rounded) */
     .feed-card, .metric-box, .ai-box, .generator-box {
         background-color: #FFFFFF;
         padding: 24px;
-        border-radius: 20px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        border: 1px solid rgba(0,0,0,0.02);
+        border-radius: 16px;
+        border: 1px solid #E3F2FD; /* 아주 연한 블루 테두리 */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         margin-bottom: 20px;
         transition: transform 0.2s ease;
     }
     .feed-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.15);
+        border-color: #4A90E2;
         cursor: pointer;
     }
-    
-    /* 다이어리 카드 (Post-it 느낌 개선) */
+
+    /* 5. 다이어리 카드 (Post-it Style with Sunny Yellow) */
     .diary-card {
-        background-color: #FFF8E1; /* 연한 옐로우 */
+        background-color: #FFFDE7; /* 연한 옐로우 배경 */
         padding: 20px;
         border-radius: 16px;
-        border: 1px solid #FFE0B2;
+        border-left: 5px solid #FFD54F; /* Clubmate Yellow 포인트 */
         margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
-    /* 5. 태그 (뱃지) 스타일 */
+    /* 6. 태그 및 뱃지 */
     .tag {
         display: inline-block;
-        background-color: #E8F3FF;
-        color: #3182F6;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 700;
-        margin-right: 6px;
-        margin-bottom: 8px;
-    }
-    .source-badge {
-        display: inline-block;
-        background-color: #F9FAFB;
-        border: 1px solid #E5E8EB;
-        color: #6B7684;
-        padding: 6px 12px;
+        background-color: #E3F2FD; /* 연한 블루 */
+        color: #4A90E2;
+        padding: 5px 10px;
         border-radius: 20px;
         font-size: 13px;
-        margin-right: 6px;
-        margin-bottom: 6px;
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
     }
+    
+    /* 7. 그라데이션 배너 (Sky & Lemon 느낌) */
+    .banner-gradient {
+        background: linear-gradient(135deg, #4A90E2 0%, #64B5F6 100%);
+        padding: 30px;
+        border-radius: 16px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+    }
+    .banner-gradient h2 { color: white !important; }
+    .banner-gradient p { color: rgba(255,255,255, 0.95) !important; }
 
-    /* 6. 입력창 (Input) 스타일 */
+    /* 8. 입력창 스타일 */
     .stTextInput > div > div > input {
-        border-radius: 12px;
-        border: 1px solid #E5E8EB;
-        background-color: #FFFFFF;
+        border-radius: 10px;
+        border: 1px solid #CFD8DC;
         padding: 10px 12px;
     }
     .stTextInput > div > div > input:focus {
-        border-color: #3182F6;
-        box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.2);
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
     }
     
-    /* 7. 그라데이션 배너 */
-    .banner-gradient {
-        background: linear-gradient(135deg, #3182F6 0%, #0052CC 100%);
-        padding: 30px;
-        border-radius: 20px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 16px rgba(49, 130, 246, 0.25);
-    }
-    .banner-gradient h2 { color: white !important; }
-    .banner-gradient p { color: rgba(255,255,255,0.9) !important; }
-
-    /* 8. 탭 (Tabs) 스타일 커스텀 */
-    button[data-baseweb="tab"] {
-        border-radius: 8px !important;
-        font-weight: 600;
-    }
-    
-    /* 9. 사이드바 스타일 */
+    /* 9. 사이드바 */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF;
-        border-right: 1px solid #F2F4F6;
+        border-right: 1px solid #E1E8EE;
     }
     
-    /* 10. 기타 유틸리티 */
-    hr { margin: 24px 0; border-color: #E5E8EB; }
-    
+    /* 10. 기타 포인트 컬러 (Green for Action) */
+    .highlight-green {
+        color: #66BB6A;
+        font-weight: bold;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -178,9 +153,9 @@ if st.session_state.step == 1:
     with col2:
         st.write("")
         st.write("")
-        st.markdown("<h1 style='text-align: center; font-size: 48px;'>🧭</h1>", unsafe_allow_html=True)
-        st.markdown("<h1 style='text-align: center;'>Career Map</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #8B95A1; font-size: 18px;'>불확실한 미래를 데이터로 확신하다</p>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; font-size: 50px;'>🧭</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color:#4A90E2;'>Career Map</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #78909C;'>대학생을 위한 데이터 기반 커리어 네비게이션</p>", unsafe_allow_html=True)
         st.write("")
         
         tab1, tab2 = st.tabs(["로그인", "회원가입"])
@@ -190,7 +165,7 @@ if st.session_state.step == 1:
                 login_id = st.text_input("아이디", key="login_id", placeholder="ID를 입력하세요")
                 login_pw = st.text_input("비밀번호", type="password", key="login_pw", placeholder="비밀번호를 입력하세요")
                 st.write("")
-                if st.button("로그인"):
+                if st.button("시작하기"):
                     if login_id:
                         st.session_state.user_info['name'] = login_id + "님"
                         st.session_state.step = 2
@@ -239,7 +214,7 @@ elif st.session_state.step == 2:
     st.title(f"반가워요, {user_name}! 👋")
     st.subheader("어떤 도움이 필요하신가요?")
     
-    # 탭 디자인 (이모지 활용)
+    # 탭 디자인
     tab_kor, tab_glo = st.tabs(["🇰🇷 내국인 (Korean)", "🌏 외국인 유학생 (Global)"])
     
     # 1. 내국인 트랙
@@ -252,7 +227,7 @@ elif st.session_state.step == 2:
                 st.write("아직 구체적인 진로를 정하지 못했어요.")
                 st.write("")
                 st.markdown("""
-                <div style='background-color:#F2F4F6; padding:15px; border-radius:12px; font-size:14px; color:#4E5968;'>
+                <div style='background-color:#F5F5F5; padding:15px; border-radius:12px; font-size:14px; color:#546E7A;'>
                 ✅ <b>커리어 성향(DNA) 진단</b><br>
                 ✅ <b>학년별 필수 로드맵</b><br>
                 ✅ <b>대외활동 추천</b>
@@ -269,7 +244,7 @@ elif st.session_state.step == 2:
                 st.write("목표 직무가 있고, 합격이 목표예요.")
                 st.write("")
                 st.markdown("""
-                <div style='background-color:#F2F4F6; padding:15px; border-radius:12px; font-size:14px; color:#4E5968;'>
+                <div style='background-color:#F5F5F5; padding:15px; border-radius:12px; font-size:14px; color:#546E7A;'>
                 ✅ <b>이력서/자소서 AI 분석</b><br>
                 ✅ <b>합격 확률 시뮬레이션</b><br>
                 ✅ <b>부족한 스펙(Gap) 진단</b>
@@ -285,14 +260,13 @@ elif st.session_state.step == 2:
     with tab_glo:
         st.write("")
         st.markdown("""
-        <div style="background-color:#E8F3FF; border: 1px solid #3182F6; padding: 15px; border-radius: 12px; color: #1B64DA; margin-bottom: 20px;">
+        <div style="background-color:#E3F2FD; border: 1px solid #4A90E2; padding: 15px; border-radius: 12px; color: #1565C0; margin-bottom: 20px;">
         💡 <b>For International Students:</b> Visa(E-7) & Career Solution
         </div>
         """, unsafe_allow_html=True)
         
         col_g1, col_g2 = st.columns([1, 2])
         with col_g1:
-            # 이미지 대신 이모지로 미니멀하게 대체 (디자인 통일성)
             st.markdown("<div style='font-size:100px; text-align:center;'>🌏</div>", unsafe_allow_html=True)
         with col_g2:
             st.markdown("### Global Talent Track")
@@ -367,11 +341,11 @@ elif st.session_state.step == 3:
         
         st.markdown("### 🧬 AI 역량/성향 데이터 연동")
         
-        # 디자인 개선된 박스
+        # 디자인 개선된 박스 (블루 테마)
         st.markdown("""
-        <div class="ai-box" style="background-color:#F9FAFB; border:1px solid #E5E8EB; box-shadow:none;">
-            <b style="color:#3182F6;">📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
-            <span style="color:#6B7684;">결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.</span>
+        <div class="ai-box" style="background-color:#F4F9FF; border:1px solid #BBDEFB; box-shadow:none;">
+            <b style="color:#1976D2;">📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
+            <span style="color:#546E7A;">결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.</span>
         </div>
         """, unsafe_allow_html=True)
         
@@ -402,7 +376,6 @@ elif st.session_state.step == 3:
                     'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
                 })
                 
-                # 로딩바 디자인은 Streamlit 기본값 사용 (커스텀 불가 영역)
                 progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
                 my_bar = st.progress(0, text=progress_text)
                 for percent_complete in range(100):
@@ -424,13 +397,13 @@ elif st.session_state.step == 4:
     test_key = st.session_state.user_info.get('test_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
-    # [사이드바] - 깔끔한 디자인
+    # [사이드바]
     with st.sidebar:
         st.title("🧭 Career Map")
         st.write(f"**{user_name}**님")
         st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
         
-        # 뱃지 스타일 개선
+        # 뱃지 스타일 (Clubmate Blue)
         if track == 'Global':
             st.markdown(f"<span class='tag'>🛂 Visa: {st.session_state.user_info.get('visa_type', 'D-2')}</span>", unsafe_allow_html=True)
         else:
@@ -451,7 +424,6 @@ elif st.session_state.step == 4:
         
         # [Branch] Global Feed
         if track == 'Global':
-             # 그라데이션 배너 (Design System Class 사용)
              st.markdown(f"""
             <div class="banner-gradient">
                 <h2 style='color:white; margin:0;'>🌏 Global Talent Analysis</h2>
@@ -467,7 +439,7 @@ elif st.session_state.step == 4:
             if "분석가" in test_key or "전략가" in test_key:
                 recomm_text = f"회원님의 **{test_key} 성향**과 **스펙**"
             
-            # 그라데이션 배너 (Design System Class 사용)
+            # 그라데이션 배너 (Clubmate Blue)
             st.markdown(f"""
             <div class="banner-gradient">
                 <h2 style='color:white; margin:0;'>📢 AI 성향/역량 데이터 분석 완료!</h2>
@@ -483,7 +455,7 @@ elif st.session_state.step == 4:
                 <div class="feed-card">
                     <span class="tag">인턴십</span> <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">채용연계</span>
                     <h4 style="margin: 10px 0;">[LG CNS] {target_job} 신입/인턴 채용</h4>
-                    <p style="color:#666; font-size:14px; margin:0;">
+                    <p style="color:#546E7A; font-size:14px; margin:0;">
                     🧬 <b>{test_key}</b> 인재를 선호하는 공고입니다! (성향 매칭됨)</p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -492,7 +464,7 @@ elif st.session_state.step == 4:
                 <div class="feed-card">
                     <span class="tag">꿀팁</span>
                     <h4 style="margin: 10px 0;">현직자가 말하는 "이런 자소서는 바로 탈락합니다"</h4>
-                    <p style="color:#666; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
+                    <p style="color:#546E7A; font-size:14px; margin:0;">조회수 2.1k | 좋아요 520</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -500,7 +472,7 @@ elif st.session_state.step == 4:
                 <div class="feed-card">
                     <span class="tag">멘토링</span>
                     <h4 style="margin: 10px 0;">{target_job} 3년차 현직자 무료 커피챗 (선착순 5명)</h4>
-                    <p style="color:#666; font-size:14px; margin:0;">신청 마감 임박</p>
+                    <p style="color:#546E7A; font-size:14px; margin:0;">신청 마감 임박</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -508,9 +480,9 @@ elif st.session_state.step == 4:
                 st.subheader("실시간 랭킹")
                 st.markdown("""
                 <div class="metric-box">
-                    <p>🥇 <b>삼성전자</b> <span style="color:red; float:right;">▲ 2</span></p>
-                    <p>🥈 <b>SK하이닉스</b> <span style="color:gray; float:right;">-</span></p>
-                    <p>🥉 <b>네이버</b> <span style="color:blue; float:right;">▼ 1</span></p>
+                    <p>🥇 <b>삼성전자</b> <span style="color:#D32F2F; float:right;">▲ 2</span></p>
+                    <p>🥈 <b>SK하이닉스</b> <span style="color:#78909C; float:right;">-</span></p>
+                    <p>🥉 <b>네이버</b> <span style="color:#1976D2; float:right;">▼ 1</span></p>
                     <p>4. <b>현대자동차</b></p>
                     <p>5. <b>LG에너지솔루션</b></p>
                 </div>
@@ -570,7 +542,7 @@ elif st.session_state.step == 4:
             with col1:
                 graph = graphviz.Digraph()
                 graph.attr(rankdir='TB') 
-                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#3182F6', fontname="sans-serif")
+                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#1565C0', fontname="sans-serif")
                 
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
                 graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
@@ -641,14 +613,14 @@ elif st.session_state.step == 4:
             </div>
             """, unsafe_allow_html=True)
 
-    # [3] 업무 다이어리
+    # [3] 업무 다이어리 (Sunny Yellow 포인트)
     elif menu == "📝 업무 다이어리":
         st.title("📝 인턴 업무 다이어리 (Career Log)")
         st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요.")
         
         st.markdown(f"""
-        <div style="background-color:#FFF3E0; padding:20px; border-radius:16px; margin-bottom:20px; text-align:center; border:1px solid #FFE0B2;">
-            <h3 style="color:#FF9800; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
+        <div style="background-color:#FFFDE7; padding:20px; border-radius:16px; margin-bottom:20px; text-align:center; border:1px solid #FFF59D;">
+            <h3 style="color:#FBC02D; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
         </div>
         """, unsafe_allow_html=True)
         
