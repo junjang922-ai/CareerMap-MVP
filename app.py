@@ -2,11 +2,10 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
-import random # 다이어리 질문 랜덤 생성용
 import graphviz # 로드맵 시각화용 (필수)
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.0", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v5.7", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -14,16 +13,7 @@ if 'step' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
-# [New] 다이어리 데이터 초기화
-if 'diary_logs' not in st.session_state:
-    st.session_state.diary_logs = [
-        {"date": "2026-02-01", "q": "오늘 가장 뿌듯했던 일은?", "a": "사수님께 엑셀 정리 잘했다고 칭찬받음! VLOOKUP 드디어 마스터했다."},
-        {"date": "2026-02-02", "q": "오늘 실수한 점이 있다면?", "a": "메일 참조(CC)에 팀장님을 빼먹었다... 다음엔 꼭 더블체크 하자."}
-    ] # 예시 데이터
-if 'diary_streak' not in st.session_state:
-    st.session_state.diary_streak = 3 # 연속 기록일 수 (가짜 데이터)
-
-# 스타일링
+# 스타일링 (서핏 느낌의 카드 UI)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
@@ -38,14 +28,10 @@ st.markdown("""
     .feed-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
     .tag { background-color: #E3F2FD; color: #1565C0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; }
     .metric-box { background-color: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; text-align: left; }
-    .ai-box { background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
     
-    /* [New] 다이어리 스타일 */
-    .diary-card {
-        background-color: #FFF3E0; border-left: 5px solid #FF9800; padding: 15px; border-radius: 10px; margin-bottom: 10px;
-    }
-    .question-box {
-        font-size: 18px; font-weight: bold; color: #E65100; margin-bottom: 10px;
+    /* AI 데이터 연동 박스 */
+    .ai-box {
+        background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -136,7 +122,7 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 역량검사 추가
+# STEP 3: 상세 진단 & 역량검사 추가 (New!)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -152,6 +138,7 @@ elif st.session_state.step == 3:
     
     st.write("")
     
+    # --- [역량검사 추가 기능] ---
     st.markdown("### 🧬 AI 역량/성향 데이터 연동")
     with st.container(border=True):
         st.markdown("""
@@ -188,6 +175,7 @@ elif st.session_state.step == 3:
                 'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
             })
             
+            # 로딩 연출
             progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
             my_bar = st.progress(0, text=progress_text)
             for percent_complete in range(100):
@@ -200,7 +188,7 @@ elif st.session_state.step == 3:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드
+# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 완벽 복원)
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -221,14 +209,13 @@ elif st.session_state.step == 4:
             st.success(f"🧬 **DNA:** {test_key}")
             
         st.divider()
-        # [New] '업무 다이어리' 메뉴 추가
-        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "📂 내 서류함", "⚙️ 설정"])
+        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
         st.markdown("💡 **Premium Service**")
         st.write("현직자 1:1 멘토링 매칭")
 
-    # [1] 홈 (Feed)
+    # [메인 화면 1] 홈 (Feed)
     if menu == "🏠 홈 (Feed)":
         st.header(f"🔥 {target_job} 분야 트렌드")
         
@@ -283,156 +270,113 @@ elif st.session_state.step == 4:
                 <p>5. <b>LG에너지솔루션</b></p>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.write("")
-            st.subheader("📅 주요 일정")
-            st.markdown("""
-            <div class="metric-box">
-                <p>✅ <b>2/14</b> 상반기 공채 설명회</p>
-                <p>⚠️ <b>2/20</b> 토익 시험 접수 마감</p>
-                <p>📅 <b>2/28</b> 삼성전자 서류 오픈(예상)</p>
-            </div>
-            """, unsafe_allow_html=True)
 
-    # [2] 로드맵/전략
+    # [메인 화면 2] 로드맵/전략 (Graphviz 복원!)
     elif menu == "🗺️ 나의 로드맵/전략":
         
+        # --- [1] 저학년: Roadmap.sh 스타일 (Graphviz) ---
         if track == 'Junior':
             st.title(f"🗺️ {target_job} 커리어 로드맵")
-            
-            if "분석가" in test_key:
-                st.success(f"💡 **AI Insight:** '{test_key}' 성향을 가진 선배들은 **데이터 자격증** 취득 시 취업률이 20% 높았습니다.")
-            elif "소통가" in test_key:
-                st.success(f"💡 **AI Insight:** '{test_key}' 성향을 가진 선배들은 **리더십 경험(학회장)**이 합격의 열쇠였습니다.")
-            else:
-                st.info(f"💡 **AI Insight:** 선배들의 합격 데이터를 기반으로 최적 경로를 추천합니다.")
+            st.caption("선배들의 데이터를 기반으로 생성된 최적의 성장 경로입니다.")
             
             col1, col2 = st.columns([2, 1])
+            
             with col1:
+                # Graphviz로 roadmap.sh 스타일 그리기 (v5.3 코드 복원)
                 graph = graphviz.Digraph()
-                graph.attr(rankdir='TB')
+                graph.attr(rankdir='TB') # 위에서 아래로 (Top to Bottom)
+                
+                # 노드 스타일 설정
                 graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
                 
+                # 단계별 노드 생성
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
-                graph.node('GPA', '📚 학점 관리', fillcolor='#C8E6C9')
-                
+                graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
+                graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
+                graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
+                graph.node('Cert', '💳 직무 자격증', fillcolor='#FFCCBC')
+                graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
+                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
+
+                # 성향에 따른 시각적 강조
                 if "분석가" in test_key:
                     graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
                 elif "소통가" in test_key:
                     graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
 
-                graph.node('Intern', '💼 인턴십', fillcolor='#FFAB91')
-                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
-
+                # 연결선 그리기
                 graph.edge('Start', 'GPA')
-                graph.edge('GPA', 'Cert')
+                graph.edge('Start', 'Eng')
                 graph.edge('GPA', 'Club')
+                graph.edge('Eng', 'Club')
+                graph.edge('Club', 'Cert')
                 graph.edge('Cert', 'Intern')
-                graph.edge('Club', 'Intern')
                 graph.edge('Intern', 'Job')
+                
                 st.graphviz_chart(graph)
             
             with col2:
-                st.info("💡 **성향 연계 솔루션**")
-                st.write(f"귀하의 **{test_key}** 성향은 연구/분석 직무에서 빛을 발합니다.")
-                st.write("다만, **설득/협상 능력**이 부족할 수 있으니 관련 활동을 추천합니다.")
-                st.divider()
+                st.info("💡 **LinkedIn Insight**")
+                st.markdown(f"""
+                <div class="feed-card">
+                    <h4>📊 선배들의 경로 분석</h4>
+                    <p><b>{target_job}</b> 합격자의 <b>65%</b>는<br>
+                    2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
+                    <hr>
+                    <p>✅ <b>필수 스킬 (Skill Gap)</b></p>
+                    <p>- Python (보유)</p>
+                    <p style='color:red;'>- SQL (미보유)</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 st.write("🚀 **추천 활동**")
-                st.checkbox("SQLD 자격증 따기")
+                st.checkbox("SQLD 자격증 따기 (난이도: 중)")
                 st.checkbox("Y.E.S 경제학회 지원하기")
 
+        # --- [2] 고학년: LinkedIn 스타일 (전략 리포트) ---
         else: # Senior
             st.title("📊 합격 전략 리포트")
-            st.info(f"AI 역량검사 결과({test_key})와 스펙을 결합한 초개인화 리포트입니다.")
+            st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
             
-            col1, col2 = st.columns([1, 1.5])
+            # 1. 경쟁률 및 내 위치 (게이지 차트 느낌)
+            st.subheader("1. 나의 합격 경쟁력")
+            col_a, col_b = st.columns([1, 2])
+            with col_a:
+                st.metric(label="예상 합격 확률", value="72%", delta="안정권 진입 중")
+            with col_b:
+                st.progress(72)
+                st.caption("합격 안정권(85%)까지 13% 남았습니다.")
+
+            st.divider()
+
+            # 2. 스펙 비교 (Skill Gap Analysis)
+            st.subheader("2. 합격자 vs 나 (Gap 분석)")
+            
+            col1, col2 = st.columns(2)
             with col1:
-                st.subheader("종합 진단")
-                st.markdown(f"""
-                <div class="feed-card" style="border-left: 5px solid #9C27B0;">
-                    <h4>🧠 성향 적합도 (Soft Skill)</h4>
-                    <p><b>{target_job}</b> 직무와 귀하의 <b>{test_key}</b> 성향은 <br>
-                    <span style="color:#9C27B0; font-size:20px; font-weight:bold;">95% 일치</span>합니다.</p>
-                </div>
-                <div class="feed-card" style="border-left: 5px solid #F44336;">
-                    <h4>💪 스펙 적합도 (Hard Skill)</h4>
-                    <p>하지만 정량적 스펙(자격증)이 부족합니다.<br>
-                    <span style="color:#F44336; font-size:20px; font-weight:bold;">70% 수준</span>입니다.</p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown("##### ✅ 내가 가진 강점")
+                st.success("• **인턴 경험 (6개월)**: 경쟁자 평균(3개월)보다 높음")
+                st.success("• **학점 (3.9)**: 합격자 평균(3.7)보다 높음")
             
             with col2:
-                st.subheader("보완 전략 (Action Plan)")
-                st.markdown("""
-                1. **[강점 강화]** 자소서 성격의 장단점 항목에 AI 진단 키워드('분석력', '치밀함')를 적극 활용하세요.
-                2. **[약점 보완]** 성향은 완벽하나 기술(Skill)이 부족합니다. SQLD 자격증으로 '분석력'을 증명할 근거를 만드세요.
-                """)
-                
-                chart_data = pd.DataFrame({
-                    "항목": ["성향적합도", "학점", "어학", "직무경험", "자격증"],
-                    "점수": [95, 85, 90, 70, 40]
-                })
-                st.bar_chart(chart_data.set_index("항목"))
+                st.markdown("##### 🚨 보완이 필요한 점")
+                st.error("• **비즈니스 영어**: OPIc IH 이상이 필요함 (현재 IM2)")
+                st.error("• **자격증**: 데이터 분석 관련 자격증 부재")
 
-    # [3] 업무 다이어리 (New Feature!)
-    elif menu == "📝 업무 다이어리":
-        st.title("📝 인턴 업무 다이어리 (Career Log)")
-        st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요. (AI 자소서의 기초 데이터가 됩니다)")
-        
-        # 1. 연속 기록 (Streak)
-        st.markdown(f"""
-        <div style="background-color:#FFF3E0; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center;">
-            <h3 style="color:#E65100; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
-            <p style="margin:5px 0 0 0;">하루만 더 쓰면 레벨업! 꾸준함이 최고의 스펙입니다.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # 2. 오늘의 질문 (랜덤 추천)
-        today_questions = [
-            "오늘 사수님이나 동료에게 들은 피드백이 있나요?",
-            "오늘 업무 중 가장 뿌듯했던 순간은 언제인가요?",
-            "오늘 실수하거나 아쉬웠던 점은 무엇인가요?",
-            "오늘 새로 배운 업무 용어나 스킬이 있나요?"
-        ]
-        if 'today_q' not in st.session_state:
-            st.session_state.today_q = random.choice(today_questions)
+            st.divider()
             
-        col1, col2 = st.columns([1.5, 1])
-        
-        with col1:
+            # 3. 다음 스텝 (Next Role)
+            st.subheader("3. Next Step Recommendation")
             st.markdown(f"""
-            <div class="question-box">Q. {st.session_state.today_q}</div>
+            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px;">
+                <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
+                <p>데이터에 따르면, 귀하의 스펙에서 가장 가성비 좋은 전략은 다음과 같습니다.</p>
+                <ul>
+                    <li><b>[1개월 내]</b> 오픽 IH 취득하기 (합격률 15% 상승 예상)</li>
+                    <li><b>[2개월 내]</b> 포트폴리오에 '데이터 기반 성과' 챕터 추가</li>
+                </ul>
+            </div>
             """, unsafe_allow_html=True)
-            
-            # 답변 입력
-            diary_input = st.text_area("답변을 입력하세요", height=100, placeholder="예: 오늘 엑셀 VLOOKUP 함수를 써서 1시간 걸릴 일을 10분 만에 끝냈다. 팀장님이 손이 빠르다고 칭찬해주셨다.")
-            
-            if st.button("오늘의 기록 저장하기 ✨"):
-                if diary_input:
-                    # 로그 저장
-                    new_log = {
-                        "date": datetime.date.today().strftime("%Y-%m-%d"),
-                        "q": st.session_state.today_q,
-                        "a": diary_input
-                    }
-                    st.session_state.diary_logs.insert(0, new_log) # 최신순 추가
-                    st.session_state.diary_streak += 1 # 스트릭 증가
-                    st.success("저장되었습니다! 내일도 잊지 마세요.")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.warning("내용을 입력해주세요.")
-                    
-        with col2:
-            st.markdown("### 📅 지난 기록 모아보기")
-            for log in st.session_state.diary_logs:
-                st.markdown(f"""
-                <div class="diary-card">
-                    <span style="font-size:12px; color:#666;">{log['date']}</span><br>
-                    <b>Q. {log['q']}</b><br>
-                    <span style="color:#333;">{log['a']}</span>
-                </div>
-                """, unsafe_allow_html=True)
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
