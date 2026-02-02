@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.9.1", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.0", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -417,7 +417,7 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 2.5: 상세 정보 수집 (수정됨: 학교/전공 입력 추가)
+# STEP 2.5: 상세 정보 수집 (유지)
 # ==========================================
 elif st.session_state.step == 2.5:
     st.title("📝 상세 정보 입력")
@@ -427,7 +427,6 @@ elif st.session_state.step == 2.5:
 
     with st.form("onboarding_form"):
         
-        # [수정] 0. 기본 소속 정보 추가 (Step 3에서 이동됨)
         st.subheader("1. 소속 정보")
         col_univ, col_major = st.columns(2)
         with col_univ:
@@ -437,7 +436,6 @@ elif st.session_state.step == 2.5:
         
         st.write("")
 
-        # 1. 학적 상태
         st.subheader("2. 학적 상태")
         col_ac1, col_ac2, col_ac3 = st.columns(3)
         with col_ac1:
@@ -455,7 +453,6 @@ elif st.session_state.step == 2.5:
 
         st.divider()
 
-        # 2. 희망 직군
         st.subheader("3. 희망 직군")
         st.caption("관심있는 직무 분야를 선택해주세요. (복수 선택 가능)")
         
@@ -475,10 +472,8 @@ elif st.session_state.step == 2.5:
 
         st.divider()
 
-        # 3. 근무 조건 및 지역
         st.subheader("4. 근무 조건")
         
-        # 경력 여부
         st.markdown("##### 경력 여부")
         career_type = st.radio("경력 여부", 
                  ["신입 (인턴 포함)", "경력 (1년 이상)"], 
@@ -486,14 +481,12 @@ elif st.session_state.step == 2.5:
         
         st.write("")
         
-        # 희망 근무지
         st.markdown("##### 희망 근무 지역")
         locations = ["전체", "서울", "경기", "인천", "대전", "부산", "대구", "광주", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"]
         selected_loc = st.multiselect("지역 선택", locations, default=["서울"])
         
         st.write("")
         
-        # 자유 근무 조건
         st.markdown("##### 희망 근무 조건 (자유 입력)")
         st.caption("금융, IT 등 선호 업종이나 기업 형태(스타트업, 대기업), 연봉 조건 등을 자유롭게 적어주세요.")
         work_cond = st.text_area("조건 입력", height=150, 
@@ -503,7 +496,6 @@ elif st.session_state.step == 2.5:
         submit_onboarding = st.form_submit_button("입력 완료 및 진단 시작하기")
         
         if submit_onboarding:
-            # 정보 저장 (학교, 전공, 희망직무 포함)
             st.session_state.user_info.update({
                 'univ': univ,
                 'major': major,
@@ -512,7 +504,7 @@ elif st.session_state.step == 2.5:
                 'status': status,
                 'earned_credits': earned_credits,
                 'job_categories': selected_categories,
-                'target_job': detailed_job if detailed_job else "미정", # 대시보드 연동용
+                'target_job': detailed_job if detailed_job else "미정",
                 'career_type': career_type,
                 'locations': selected_loc,
                 'work_cond': work_cond
@@ -523,7 +515,7 @@ elif st.session_state.step == 2.5:
             st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (수정됨: 중복 정보 입력 제거)
+# STEP 3: 상세 진단 (수정됨: 진단 페이지 연결 & 이력서 New Feature)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -535,7 +527,6 @@ elif st.session_state.step == 3:
     if track == 'Global':
         st.info("🌏 **Global User Additional Info**")
         
-        # [수정] 학교, 전공 제거 -> 비자와 토픽만 남김
         col1, col2 = st.columns(2)
         with col1:
             visa_type = st.selectbox("Current Visa (현재 비자)", ["D-2 (유학)", "D-10 (구직)", "E-7 (취업)", "F-series"])
@@ -565,41 +556,74 @@ elif st.session_state.step == 3:
 
     # [Branch] 내국인 트랙
     else: 
-        # [수정] 학교, 전공, 희망직무 입력란 제거됨 (Step 2.5에서 입력받음)
-        st.markdown("### 🧬 AI 역량/성향 데이터 연동")
+        st.markdown("### 1. 성향/역량 분석 (Soft Skill)")
         
-        # 디자인 개선된 박스 (블루 테마)
-        st.markdown("""
-        <div class="ai-box" style="background-color:#F4F9FF; border:1px solid #BBDEFB; box-shadow:none;">
-            <b style="color:#1976D2;">📢 외부 AI 역량검사 혹은 인성검사 결과표가 있으신가요?</b><br>
-            <span style="color:#546E7A;">결과표를 업로드하거나 핵심 키워드를 입력하시면, <b>성향 맞춤형 로드맵</b>을 설계해드립니다.</span>
-        </div>
-        """, unsafe_allow_html=True)
+        # 성향 진단 옵션 선택
+        diagnosis_type = st.radio("분석 방법 선택", ["Career Map AI 정밀 진단 (추천)", "외부 검사 결과(PDF) 업로드"], horizontal=True)
         
-        has_test = st.radio("검사 결과 보유 여부", ["네, 있습니다.", "아니요, 없습니다."], horizontal=True)
+        st.write("")
         
-        test_keyword = "미입력"
-        if has_test == "네, 있습니다.":
-            col_j1, col_j2 = st.columns(2)
-            with col_j1:
-                st.file_uploader("검사 결과표 업로드 (PDF/JPG)", type=['pdf', 'jpg', 'png'])
-            with col_j2:
-                test_keyword = st.selectbox("결과표의 핵심 성향 키워드는?", 
-                                             ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
-                if test_keyword != "선택해주세요":
-                    st.success(f"✅ '{test_keyword}' 성향 데이터를 반영합니다.")
+        test_keyword = st.session_state.user_info.get('test_keyword', '미입력')
+        
+        # [Option 1] AI 정밀 진단 (새로운 페이지로 연결)
+        if diagnosis_type == "Career Map AI 정밀 진단 (추천)":
+            st.markdown("""
+            <div style="background-color:#E3F2FD; padding:20px; border-radius:12px; border:1px solid #90CAF9;">
+                <h4 style="color:#1565C0; margin-top:0;">🤖 AI 커리어 성향 진단</h4>
+                <p style="color:#424242; font-size:14px;">
+                20개의 문항을 통해 나의 <b>업무 스타일, 소통 방식, 강점</b>을 정밀하게 분석합니다.<br>
+                진단 결과는 로드맵 설계에 자동으로 반영됩니다. (소요시간: 약 3분)
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.write("")
+            
+            if test_keyword != '미입력':
+                st.success(f"✅ 진단 완료: **{test_keyword}** 유형")
+            else:
+                if st.button("👉 AI 진단 시작하기 (새 페이지)"):
+                    st.session_state.step = 3.5 # 진단 페이지로 이동
+                    st.rerun()
+
+        # [Option 2] 외부 결과 업로드
         else:
-            st.info("자체 간편 진단으로 대체합니다.")
-            with st.expander("간편 성향 진단 진행하기"):
-                st.radio("선호하는 업무 스타일", ["혼자 깊게 파고들기", "함께 토론하며 풀기"])
+            st.markdown("""
+            <div class="ai-box" style="background-color:#F5F5F5; border:1px solid #E0E0E0; box-shadow:none;">
+                <b style="color:#616161;">📢 외부 역량검사(마이다스, 잡다 등) 결과표가 있으신가요?</b><br>
+                <span style="color:#757575;">결과표(PDF)를 업로드하면 해당 데이터를 기반으로 분석합니다.</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.file_uploader("검사 결과표 업로드", type=['pdf', 'jpg', 'png'])
+            st.selectbox("결과표의 핵심 성향 키워드를 선택해주세요", 
+                         ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
 
         st.write("")
-        uploaded_file = st.file_uploader("📂 이력서/자소서 업로드 (Hard Skill 분석용)", type=['pdf', 'docx'])
+        st.divider()
+        st.write("")
+
+        # [New Feature] 이력서/자소서 분석
+        st.markdown("### 2. 이력서/경험 분해 (Hard Skill)")
+        st.markdown("""
+        <div style="border: 2px solid #4A90E2; border-radius: 12px; padding: 20px; background-color: #FDFEFF;">
+            <h4 style="color: #4A90E2; margin-top: 0;">✨ New Feature: AI 이력서 분석</h4>
+            <p style="font-size: 14px; color: #555;">
+            이미 작성해둔 <b>이력서</b>나 <b>자기소개서</b>가 있으신가요?<br>
+            파일을 업로드하면 AI가 <b>직무 역량(Hard Skill)</b>과 <b>프로젝트 경험</b>을 자동으로 추출하여 내 프로필에 등록합니다.
+            </p>
+            <div style="margin-top: 15px;">
+        """, unsafe_allow_html=True)
+        
+        uploaded_resume = st.file_uploader("이력서/자소서 파일 업로드", type=['pdf', 'docx', 'hwp'], key="resume_upload")
+        st.markdown("</div></div>", unsafe_allow_html=True)
         
         st.write("")
-        if st.button("🚀 AI 통합 분석 시작하기"):
-            # 데이터 처리 시뮬레이션
-            st.session_state.user_info['test_keyword'] = test_keyword
+        st.write("")
+        
+        # 종합 분석 시작 버튼
+        if st.button("🚀 AI 통합 분석 시작하기", type="primary"):
+            # 데모용: 진단을 안 했다면 임의 설정
+            if test_keyword == '미입력':
+                st.session_state.user_info['test_keyword'] = "전략가형 (Strategic)"
             
             progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
             my_bar = st.progress(0, text=progress_text)
@@ -608,6 +632,40 @@ elif st.session_state.step == 3:
                 my_bar.progress(percent_complete + 1)
             
             st.session_state.step = 4
+            st.rerun()
+
+# ==========================================
+# STEP 3.5: AI 성향 진단 페이지 (신규 추가)
+# ==========================================
+elif st.session_state.step == 3.5:
+    st.title("🧬 AI 커리어 성향 진단")
+    st.markdown("**솔직하게 답변해주세요.** 정답은 없습니다.")
+    st.progress(30) # 진행률 예시
+    
+    with st.container(border=True):
+        st.markdown("#### Q1. 새로운 프로젝트를 시작할 때, 나는?")
+        st.radio("1번 문항", ["철저하게 계획을 세우고 시작한다.", "일단 부딪혀보며 수정해 나간다."], label_visibility="collapsed")
+    
+    st.write("")
+    
+    with st.container(border=True):
+        st.markdown("#### Q2. 팀원과 의견이 충돌할 때, 나는?")
+        st.radio("2번 문항", ["논리적인 근거를 들어 설득한다.", "상대방의 감정을 먼저 살핀다."], label_visibility="collapsed")
+    
+    st.write("")
+    
+    with st.container(border=True):
+        st.markdown("#### Q3. 내가 더 선호하는 업무 환경은?")
+        st.radio("3번 문항", ["조용하고 독립적인 공간", "활발하게 소통하는 개방된 공간"], label_visibility="collapsed")
+    
+    st.write("")
+    
+    if st.button("진단 결과 제출하기"):
+        with st.spinner("결과를 분석 중입니다..."):
+            time.sleep(1.5)
+            # 데모 결과 저장
+            st.session_state.user_info['test_keyword'] = "분석가형 (Analytical)"
+            st.session_state.step = 3 # 다시 데이터 연동 페이지로 복귀
             st.rerun()
 
 # ==========================================
