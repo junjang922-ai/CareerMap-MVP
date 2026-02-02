@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.7", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.9", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -14,7 +14,7 @@ if 'step' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
-# [회원가입 상태 관리용 변수 - 로그인 고도화 기능용]
+# [회원가입 상태 관리용 변수]
 if 'signup_status' not in st.session_state:
     st.session_state.signup_status = {
         'phone_verified': False,
@@ -31,7 +31,7 @@ if 'diary_streak' not in st.session_state:
     st.session_state.diary_streak = 3
 
 # ==============================================================================
-# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow) - [원본 복구 완료]
+# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow) - [유지]
 # ==============================================================================
 st.markdown("""
     <style>
@@ -58,7 +58,7 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* 3. 버튼 (Primary: Soft Azure) - [흰색 글씨 강제 적용 유지] */
+    /* 3. 버튼 (Primary: Soft Azure) */
     .stButton > button {
         background-color: #4A90E2 !important; /* Clubmate Blue */
         color: #FFFFFF !important; /* 텍스트 완전 흰색 강제 */
@@ -85,7 +85,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
     
-    /* [추가] 로그인 페이지용 작은 버튼 스타일 (Small Gray Button) */
+    /* 로그인 페이지용 작은 버튼 스타일 */
     .small-btn > button {
         background-color: #ECEFF1 !important;
         color: #546E7A !important;
@@ -102,12 +102,12 @@ st.markdown("""
         transform: none !important;
     }
     
-    /* 4. 카드 디자인 (Clean & Rounded) */
+    /* 4. 카드 디자인 */
     .feed-card, .metric-box, .ai-box, .generator-box {
         background-color: #FFFFFF;
         padding: 24px;
         border-radius: 16px;
-        border: 1px solid #E3F2FD; /* 아주 연한 블루 테두리 */
+        border: 1px solid #E3F2FD;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         margin-bottom: 20px;
         transition: transform 0.2s ease;
@@ -119,12 +119,12 @@ st.markdown("""
         cursor: pointer;
     }
 
-    /* 5. 다이어리 카드 (Post-it Style with Sunny Yellow) */
+    /* 5. 다이어리 카드 */
     .diary-card {
-        background-color: #FFFDE7; /* 연한 옐로우 배경 */
+        background-color: #FFFDE7;
         padding: 20px;
         border-radius: 16px;
-        border-left: 5px solid #FFD54F; /* Clubmate Yellow 포인트 */
+        border-left: 5px solid #FFD54F;
         margin-bottom: 12px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
@@ -132,7 +132,7 @@ st.markdown("""
     /* 6. 태그 및 뱃지 */
     .tag {
         display: inline-block;
-        background-color: #E3F2FD; /* 연한 블루 */
+        background-color: #E3F2FD;
         color: #4A90E2;
         padding: 5px 10px;
         border-radius: 20px;
@@ -142,7 +142,7 @@ st.markdown("""
         margin-bottom: 5px;
     }
     
-    /* 7. 그라데이션 배너 (Sky & Lemon 느낌) */
+    /* 7. 그라데이션 배너 */
     .banner-gradient {
         background: linear-gradient(135deg, #4A90E2 0%, #64B5F6 100%);
         padding: 30px;
@@ -171,19 +171,13 @@ st.markdown("""
         border-right: 1px solid #E1E8EE;
     }
     
-    /* 10. 탭 스타일 (선택된 탭 강조) */
+    /* 10. 탭 스타일 */
     .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
         color: #4A90E2 !important;
         border-color: #4A90E2 !important;
     }
     
     /* 11. 기타 포인트 컬러 */
-    .highlight-green {
-        color: #66BB6A;
-        font-weight: bold;
-    }
-    
-    /* 12. 성공 텍스트 (로그인용) */
     .success-text {
         color: #2E7D32;
         font-size: 13px;
@@ -195,7 +189,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (고도화됨 - 요청하신 부분)
+# STEP 1: 로그인 및 회원가입 (유지)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -223,19 +217,16 @@ if st.session_state.step == 1:
                     else:
                         st.warning("아이디를 입력해주세요.")
 
-        # [Tab 2] 회원가입 (고도화된 버전 적용)
+        # [Tab 2] 회원가입
         with tab2:
             st.markdown("#### 환영합니다! 👋\n**당신의 취업을 진심으로 응원해요**")
             st.write("")
             
             with st.container(border=True):
-                # 1. 이름
                 st.caption("이름")
                 name = st.text_input("이름", label_visibility="collapsed", placeholder="실명을 입력해주세요")
-                
                 st.write("")
                 
-                # 2. 생년월일 & 성별
                 col_birth, col_gender = st.columns([2, 1])
                 with col_birth:
                     st.caption("생년월일 8자리 (예: 20020922)")
@@ -245,8 +236,6 @@ if st.session_state.step == 1:
                     gender = st.radio("성별", ["남자", "여자"], label_visibility="collapsed", horizontal=True)
 
                 st.write("")
-
-                # 3. 휴대폰 번호 & 인증
                 st.caption("휴대폰 번호")
                 c_p1, c_p2 = st.columns([3, 1])
                 with c_p1:
@@ -258,7 +247,6 @@ if st.session_state.step == 1:
                          st.toast("인증번호가 발송되었습니다. (1234)", icon="📩")
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                # 인증번호 입력창 (인증 버튼 누르면 활성화)
                 if st.session_state.signup_status['auth_sent']:
                     c_a1, c_a2 = st.columns([3, 1])
                     with c_a1:
@@ -276,8 +264,6 @@ if st.session_state.step == 1:
                         st.markdown('<p class="success-text">✅ 인증이 완료되었어요.</p>', unsafe_allow_html=True)
                 
                 st.write("")
-
-                # 4. 이메일
                 st.caption("이메일")
                 email = st.text_input("이메일", label_visibility="collapsed", placeholder="example@yonsei.ac.kr")
                 st.caption("* 입사제안, 전형안내 등 중요한 메일 수신에 사용되므로 정확히 입력해주세요.")
@@ -286,7 +272,6 @@ if st.session_state.step == 1:
                 st.divider()
                 st.write("")
 
-                # 5. 아이디 & 중복확인
                 st.caption("아이디")
                 c_id1, c_id2 = st.columns([3, 1])
                 with c_id1:
@@ -304,8 +289,6 @@ if st.session_state.step == 1:
                     st.markdown('<p class="success-text">✅ 사용 가능한 아이디에요.</p>', unsafe_allow_html=True)
 
                 st.write("")
-
-                # 6. 비밀번호 & 재확인
                 st.caption("비밀번호")
                 new_pw = st.text_input("비밀번호", type="password", label_visibility="collapsed", placeholder="비밀번호 입력")
                 st.caption("비밀번호 재확인")
@@ -320,9 +303,7 @@ if st.session_state.step == 1:
                 st.write("")
                 st.divider()
                 
-                # 7. 약관 동의
                 agree_all = st.checkbox("모든 약관 사항에 전체 동의합니다.")
-                
                 val_serv = True if agree_all else False
                 val_priv = True if agree_all else False
                 
@@ -331,18 +312,15 @@ if st.session_state.step == 1:
                     agree_service = st.checkbox("서비스 이용약관 동의 (필수)")
                     agree_privacy = st.checkbox("개인정보 수집 및 이용 동의 (필수)")
                     agree_marketing = st.checkbox("마케팅 정보 수신 동의 (선택)")
-                    
                     val_serv = agree_service
                     val_priv = agree_privacy
 
                 st.write("")
                 st.write("")
                 
-                # 가입 완료 버튼
                 submit_btn = st.button("가입하고 진단 시작하기 🚀")
                 
                 if submit_btn:
-                    # 유효성 검사
                     if not name or not phone or not new_id or not new_pw:
                         st.error("필수 정보를 모두 입력해주세요.")
                     elif not st.session_state.signup_status['phone_verified']:
@@ -354,7 +332,6 @@ if st.session_state.step == 1:
                     elif not (val_serv and val_priv):
                         st.error("필수 약관에 동의해주세요.")
                     else:
-                        # 가입 성공 처리
                         st.session_state.user_info = {
                             'id': new_id, 'name': name, 'gender': gender, 
                             'dob': dob_input, 'phone': phone, 'email': email
@@ -365,14 +342,13 @@ if st.session_state.step == 1:
                         st.rerun()
 
 # ==========================================
-# STEP 2: 트랙 선택 (원본 복구)
+# STEP 2: 트랙 선택 (수정: 다음 단계로 Step 2.5 연결)
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
     st.title(f"반가워요, {user_name}! 👋")
     st.subheader("어떤 도움이 필요하신가요?")
     
-    # 탭 디자인
     tab_kor, tab_glo = st.tabs(["🇰🇷 내국인 (Korean)", "🌏 외국인 유학생 (Global)"])
     
     # 1. 내국인 트랙
@@ -394,7 +370,7 @@ elif st.session_state.step == 2:
                 st.write("")
                 if st.button("저학년 트랙 시작", key="btn_junior"):
                     st.session_state.user_info['track'] = 'Junior'
-                    st.session_state.step = 3
+                    st.session_state.step = 2.5 # [수정] Step 2.5로 이동
                     st.rerun()
         with col2:
             with st.container(border=True):
@@ -411,7 +387,7 @@ elif st.session_state.step == 2:
                 st.write("")
                 if st.button("고학년 트랙 시작", key="btn_senior"):
                     st.session_state.user_info['track'] = 'Senior'
-                    st.session_state.step = 3
+                    st.session_state.step = 2.5 # [수정] Step 2.5로 이동
                     st.rerun()
 
     # 2. 외국인 트랙
@@ -437,11 +413,102 @@ elif st.session_state.step == 2:
             st.write("")
             if st.button("Start Global Track 🚀", key="btn_global"):
                 st.session_state.user_info['track'] = 'Global'
-                st.session_state.step = 3
+                st.session_state.step = 2.5 # [수정] Step 2.5로 이동
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (원본 복구)
+# STEP 2.5: 상세 정보 수집 (신규 추가)
+# ==========================================
+elif st.session_state.step == 2.5:
+    st.title("📝 상세 정보 입력")
+    st.markdown("나에게 **딱 맞는 맞춤 포지션**을 제안받기 위해 정보를 입력해주세요.")
+    st.write("")
+    st.progress(50) # 진행률 표시
+
+    with st.form("onboarding_form"):
+        # 1. 학적 정보
+        st.subheader("1. 학적 정보")
+        col_ac1, col_ac2, col_ac3 = st.columns(3)
+        with col_ac1:
+            grade = st.selectbox("현재 학년", ["1학년", "2학년", "3학년", "4학년", "졸업유예/수료", "졸업"])
+        with col_ac2:
+            semester = st.selectbox("현재 학기", ["1학기", "2학기", "휴학 중"])
+        with col_ac3:
+            status = st.selectbox("학적 상태", ["재학", "휴학", "수료", "졸업"])
+            
+        col_cr1, col_cr2 = st.columns(2)
+        with col_cr1:
+            earned_credits = st.number_input("현재 이수 학점", min_value=0, max_value=200, value=0)
+        with col_cr2:
+            goal_credits = st.number_input("졸업 기준 학점", min_value=0, max_value=200, value=130)
+
+        st.divider()
+
+        # 2. 희망 직군 (이미지 UI 반영)
+        st.subheader("2. 희망 직군")
+        st.caption("관심있는 직무 분야를 선택해주세요. (복수 선택 가능)")
+        
+        job_categories = [
+            "경영기획·지원", "홍보·마케팅", "영업", 
+            "생산·유통·품질", "건설 엔지니어", "연구·개발", 
+            "IT 서비스", "디자인", "금융·보험",
+            "서비스·고객지원", "의료·보건", "개발"
+        ]
+        
+        selected_categories = st.multiselect("희망 직군 선택", job_categories, placeholder="직군을 선택해주세요")
+        
+        if selected_categories:
+            st.caption("선택한 직군 내 상세 직무 (예시)")
+            st.text_input("상세 희망 직무 (직접 입력)", placeholder="예: 콘텐츠 마케터, 백엔드 개발자")
+
+        st.divider()
+
+        # 3. 근무 조건 및 지역
+        st.subheader("3. 근무 조건")
+        
+        # 경력 여부 (이미지 반영)
+        st.markdown("##### 경력 여부")
+        career_type = st.radio("경력 여부", 
+                 ["신입 (인턴 포함)", "경력 (1년 이상)"], 
+                 horizontal=True, label_visibility="collapsed")
+        
+        st.write("")
+        
+        # 희망 근무지 (이미지 반영)
+        st.markdown("##### 희망 근무 지역")
+        locations = ["전체", "서울", "경기", "인천", "대전", "부산", "대구", "광주", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"]
+        selected_loc = st.multiselect("지역 선택", locations, default=["서울"])
+        
+        st.write("")
+        
+        # 자유 근무 조건 (이미지 반영)
+        st.markdown("##### 희망 근무 조건 (자유 입력)")
+        st.caption("금융, IT 등 선호 업종이나 기업 형태(스타트업, 대기업), 연봉 조건 등을 자유롭게 적어주세요.")
+        work_cond = st.text_area("조건 입력", height=150, 
+                                 placeholder="(예시)\n'스타트업에서 일하는 것도 괜찮아요.'\n'경기남부와 서울 강남권을 선호해요.'\n'최소 연봉은 4천 이상이면 좋겠어요.'")
+
+        st.write("")
+        submit_onboarding = st.form_submit_button("입력 완료 및 진단 시작하기")
+        
+        if submit_onboarding:
+            # 정보 저장
+            st.session_state.user_info.update({
+                'grade': grade,
+                'semester': semester,
+                'status': status,
+                'earned_credits': earned_credits,
+                'job_categories': selected_categories,
+                'career_type': career_type,
+                'locations': selected_loc,
+                'work_cond': work_cond
+            })
+            st.success("정보가 저장되었습니다!")
+            time.sleep(1)
+            st.session_state.step = 3
+            st.rerun()
+
+# ==========================================
+# STEP 3: 상세 진단 (유지)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -546,7 +613,7 @@ elif st.session_state.step == 3:
                 st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (원본 복구 - 몸값 분석 제거됨)
+# STEP 4: 메인 대시보드 (유지)
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -571,7 +638,6 @@ elif st.session_state.step == 4:
                 st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             
         st.divider()
-        # [수정] 몸값 분석 메뉴 제거됨
         menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
