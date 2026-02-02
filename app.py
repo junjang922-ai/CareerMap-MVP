@@ -6,13 +6,22 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.7", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.8", page_icon="🧭", layout="wide")
 
-# 세션 상태 관리 (기능 100% 유지)
+# 세션 상태 관리
 if 'step' not in st.session_state:
     st.session_state.step = 1
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
+
+# [수정됨] 회원가입 상태 관리용 변수 추가
+if 'signup_status' not in st.session_state:
+    st.session_state.signup_status = {
+        'phone_verified': False,
+        'id_checked': False,
+        'auth_sent': False
+    }
+
 if 'diary_logs' not in st.session_state:
     st.session_state.diary_logs = [
         {"date": "2026-02-01", "q": "오늘 가장 뿌듯했던 일은?", "a": "사수님께 엑셀 정리 잘했다고 칭찬받음! VLOOKUP 드디어 마스터했다."},
@@ -22,165 +31,85 @@ if 'diary_streak' not in st.session_state:
     st.session_state.diary_streak = 3
 
 # ==============================================================================
-# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow)
+# 🎨 Design System (Clubmate Theme)
 # ==============================================================================
 st.markdown("""
     <style>
-    /* 1. 폰트 및 기본 배경 */
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
     
     html, body, [class*="css"] {
         font-family: 'Pretendard', sans-serif;
-        color: #333333; /* Text Black */
+        color: #333333;
     }
+    .stApp { background-color: #F7F9FC; }
     
-    /* 전체 배경: 아주 연한 블루 그레이 */
-    .stApp {
-        background-color: #F7F9FC;
-    }
-
-    /* 2. 타이포그래피 */
-    h1, h2, h3 {
-        color: #2C3E50;
-        font-weight: 700;
-    }
-    p {
-        color: #546E7A;
-        line-height: 1.6;
-    }
-
-    /* 3. 버튼 (Primary: Soft Azure) - [수정됨: 흰색 글씨 강제 적용] */
+    /* 버튼 스타일 */
     .stButton > button {
-        background-color: #4A90E2 !important; /* Clubmate Blue */
-        color: #FFFFFF !important; /* 텍스트 완전 흰색 강제 */
+        background-color: #4A90E2 !important;
+        color: #FFFFFF !important;
         border: none;
-        border-radius: 12px;
-        padding: 0.8rem 1.5rem;
-        font-size: 16px;
+        border-radius: 8px; /* 조금 더 각지게 수정 */
+        padding: 0.6rem 1.2rem;
         font-weight: 600;
         width: 100%;
-        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.2);
         transition: all 0.2s ease;
     }
     .stButton > button:hover {
         background-color: #357ABD !important;
-        color: #FFFFFF !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
-    }
-    .stButton > button:active {
-        color: #FFFFFF !important;
-        background-color: #2a65a0 !important;
-    }
-    /* 버튼 내부 텍스트 요소까지 확실하게 흰색 처리 */
-    .stButton > button p {
-        color: #FFFFFF !important;
+        transform: translateY(-1px);
     }
     
-    /* 4. 카드 디자인 (Clean & Rounded) */
-    .feed-card, .metric-box, .ai-box, .generator-box {
-        background-color: #FFFFFF;
-        padding: 24px;
-        border-radius: 16px;
-        border: 1px solid #E3F2FD; /* 아주 연한 블루 테두리 */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        margin-bottom: 20px;
-        transition: transform 0.2s ease;
+    /* 인증/확인용 작은 버튼 (Gray style) */
+    .small-btn > button {
+        background-color: #ECEFF1 !important;
+        color: #546E7A !important;
+        border: 1px solid #CFD8DC;
+        box-shadow: none;
     }
-    .feed-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.15);
-        border-color: #4A90E2;
-        cursor: pointer;
+    .small-btn > button:hover {
+        background-color: #CFD8DC !important;
+        color: #37474F !important;
     }
 
-    /* 5. 다이어리 카드 (Post-it Style with Sunny Yellow) */
-    .diary-card {
-        background-color: #FFFDE7; /* 연한 옐로우 배경 */
-        padding: 20px;
-        border-radius: 16px;
-        border-left: 5px solid #FFD54F; /* Clubmate Yellow 포인트 */
-        margin-bottom: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* 6. 태그 및 뱃지 */
-    .tag {
-        display: inline-block;
-        background-color: #E3F2FD; /* 연한 블루 */
-        color: #4A90E2;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-    
-    /* 7. 그라데이션 배너 (Sky & Lemon 느낌) */
-    .banner-gradient {
-        background: linear-gradient(135deg, #4A90E2 0%, #64B5F6 100%);
-        padding: 30px;
-        border-radius: 16px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
-    }
-    .banner-gradient h2 { color: white !important; }
-    .banner-gradient p { color: rgba(255,255,255, 0.95) !important; }
-
-    /* 8. 입력창 스타일 */
+    /* 입력창 스타일 */
     .stTextInput > div > div > input {
-        border-radius: 10px;
+        border-radius: 8px;
         border: 1px solid #CFD8DC;
         padding: 10px 12px;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: #4A90E2;
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-    }
-    
-    /* 9. 사이드바 */
-    [data-testid="stSidebar"] {
         background-color: #FFFFFF;
-        border-right: 1px solid #E1E8EE;
     }
     
-    /* 10. 탭 스타일 (선택된 탭 강조) */
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        color: #4A90E2 !important;
-        border-color: #4A90E2 !important;
-    }
-    
-    /* 11. 기타 포인트 컬러 */
-    .highlight-green {
-        color: #66BB6A;
-        font-weight: bold;
+    /* 성공 텍스트 (Green) */
+    .success-text {
+        color: #2E7D32;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: -10px;
+        margin-bottom: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입
+# STEP 1: 로그인 및 회원가입 (고도화됨)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.write("")
-        st.write("")
         st.markdown("<h1 style='text-align: center; font-size: 50px;'>🧭</h1>", unsafe_allow_html=True)
         st.markdown("<h1 style='text-align: center; color:#4A90E2;'>Career Map</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #78909C;'>대학생을 위한 데이터 기반 커리어 네비게이션</p>", unsafe_allow_html=True)
         st.write("")
         
         tab1, tab2 = st.tabs(["로그인", "회원가입"])
         
+        # [Tab 1] 로그인
         with tab1:
             with st.container(border=True):
                 login_id = st.text_input("아이디", key="login_id", placeholder="ID를 입력하세요")
                 login_pw = st.text_input("비밀번호", type="password", key="login_pw", placeholder="비밀번호를 입력하세요")
                 st.write("")
-                if st.button("시작하기"):
+                if st.button("로그인"):
                     if login_id:
                         st.session_state.user_info['name'] = login_id + "님"
                         st.session_state.step = 2
@@ -188,38 +117,146 @@ if st.session_state.step == 1:
                     else:
                         st.warning("아이디를 입력해주세요.")
 
+        # [Tab 2] 회원가입 (이미지 UI 반영)
         with tab2:
-            st.info("👋 정확한 진단을 위해 기본 정보를 입력해주세요.")
-            with st.form("signup_form"):
-                st.markdown("##### 1️⃣ 계정 정보")
-                new_id = st.text_input("아이디 (ID)")
-                new_pw = st.text_input("비밀번호 (Password)", type="password")
-                
-                st.markdown("##### 2️⃣ 인적 사항")
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    name = st.text_input("성명")
-                    gender = st.selectbox("성별", ["남성", "여성", "기타"])
-                with col_b:
-                    dob = st.date_input("생년월일", min_value=datetime.date(1990, 1, 1), value=datetime.date(2002, 1, 1))
-                    phone = st.text_input("휴대폰 번호", placeholder="010-0000-0000")
-                
-                email = st.text_input("이메일 (결과 리포트 발송용)")
+            st.markdown("#### 환영합니다! 👋\n**당신의 취업을 진심으로 응원해요**")
+            st.write("")
+            
+            with st.container(border=True):
+                # 1. 이름
+                st.caption("이름")
+                name = st.text_input("이름", label_visibility="collapsed", placeholder="실명을 입력해주세요")
                 
                 st.write("")
-                submit_btn = st.form_submit_button("가입하고 진단 시작하기 🚀")
+                
+                # 2. 생년월일 & 성별
+                col_birth, col_gender = st.columns([2, 1])
+                with col_birth:
+                    st.caption("생년월일 8자리 (예: 20020922)")
+                    dob_input = st.text_input("생년월일", label_visibility="collapsed", placeholder="2002.09.22")
+                with col_gender:
+                    st.caption("성별")
+                    gender = st.radio("성별", ["남자", "여자"], label_visibility="collapsed", horizontal=True)
+
+                st.write("")
+
+                # 3. 휴대폰 번호 & 인증
+                st.caption("휴대폰 번호")
+                c_p1, c_p2 = st.columns([3, 1])
+                with c_p1:
+                    phone = st.text_input("휴대폰 번호", label_visibility="collapsed", placeholder="010-0000-0000")
+                with c_p2:
+                    st.markdown('<div class="small-btn">', unsafe_allow_html=True)
+                    if st.button("인증"):
+                         st.session_state.signup_status['auth_sent'] = True
+                         st.toast("인증번호가 발송되었습니다. (1234)", icon="📩")
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                # 인증번호 입력창 (인증 버튼 누르면 활성화)
+                if st.session_state.signup_status['auth_sent']:
+                    c_a1, c_a2 = st.columns([3, 1])
+                    with c_a1:
+                        auth_code = st.text_input("인증번호", placeholder="인증번호 4자리", label_visibility="collapsed")
+                    with c_a2:
+                        st.markdown('<div class="small-btn">', unsafe_allow_html=True)
+                        if st.button("확인"):
+                            if auth_code == "1234":
+                                st.session_state.signup_status['phone_verified'] = True
+                            else:
+                                st.error("인증번호가 틀렸습니다.")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    if st.session_state.signup_status['phone_verified']:
+                        st.markdown('<p class="success-text">✅ 인증이 완료되었어요.</p>', unsafe_allow_html=True)
+                
+                st.write("")
+
+                # 4. 이메일
+                st.caption("이메일")
+                email = st.text_input("이메일", label_visibility="collapsed", placeholder="example@yonsei.ac.kr")
+                st.caption("* 입사제안, 전형안내 등 중요한 메일 수신에 사용되므로 정확히 입력해주세요.")
+
+                st.write("")
+                st.divider()
+                st.write("")
+
+                # 5. 아이디 & 중복확인
+                st.caption("아이디")
+                c_id1, c_id2 = st.columns([3, 1])
+                with c_id1:
+                    new_id = st.text_input("아이디 입력", label_visibility="collapsed", placeholder="영문, 숫자 포함 6-12자")
+                with c_id2:
+                    st.markdown('<div class="small-btn">', unsafe_allow_html=True)
+                    if st.button("중복확인"):
+                        if len(new_id) > 0:
+                            st.session_state.signup_status['id_checked'] = True
+                        else:
+                            st.warning("입력필요")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                if st.session_state.signup_status['id_checked']:
+                    st.markdown('<p class="success-text">✅ 사용 가능한 아이디에요.</p>', unsafe_allow_html=True)
+
+                st.write("")
+
+                # 6. 비밀번호 & 재확인
+                st.caption("비밀번호")
+                new_pw = st.text_input("비밀번호", type="password", label_visibility="collapsed", placeholder="비밀번호 입력")
+                st.caption("비밀번호 재확인")
+                new_pw2 = st.text_input("비밀번호 재확인", type="password", label_visibility="collapsed", placeholder="비밀번호 다시 입력")
+
+                if new_pw and new_pw2:
+                    if new_pw == new_pw2:
+                        st.markdown('<p class="success-text">✅ 비밀번호가 일치해요.</p>', unsafe_allow_html=True)
+                    else:
+                        st.markdown('<p style="color:#D32F2F; font-size:13px;">❌ 비밀번호가 일치하지 않습니다.</p>', unsafe_allow_html=True)
+
+                st.write("")
+                st.divider()
+                
+                # 7. 약관 동의
+                agree_all = st.checkbox("모든 약관 사항에 전체 동의합니다.")
+                
+                val_serv = True if agree_all else False
+                val_priv = True if agree_all else False
+                
+                if not agree_all:
+                    c_t1, c_t2 = st.columns([0.1, 0.9])
+                    agree_service = st.checkbox("서비스 이용약관 동의 (필수)")
+                    agree_privacy = st.checkbox("개인정보 수집 및 이용 동의 (필수)")
+                    agree_marketing = st.checkbox("마케팅 정보 수신 동의 (선택)")
+                    
+                    val_serv = agree_service
+                    val_priv = agree_privacy
+
+                st.write("")
+                st.write("")
+                
+                # 가입 완료 버튼
+                submit_btn = st.button("가입 완료", type="primary")
                 
                 if submit_btn:
-                    if new_id and new_pw and name and phone:
+                    # 유효성 검사
+                    if not name or not phone or not new_id or not new_pw:
+                        st.error("필수 정보를 모두 입력해주세요.")
+                    elif not st.session_state.signup_status['phone_verified']:
+                        st.error("휴대폰 인증을 완료해주세요.")
+                    elif not st.session_state.signup_status['id_checked']:
+                        st.error("아이디 중복확인을 해주세요.")
+                    elif new_pw != new_pw2:
+                        st.error("비밀번호가 일치하지 않습니다.")
+                    elif not (val_serv and val_priv):
+                        st.error("필수 약관에 동의해주세요.")
+                    else:
+                        # 가입 성공 처리
                         st.session_state.user_info = {
-                            'id': new_id, 'name': name, 'gender': gender, 'dob': str(dob), 'phone': phone, 'email': email
+                            'id': new_id, 'name': name, 'gender': gender, 
+                            'dob': dob_input, 'phone': phone, 'email': email
                         }
                         st.success("가입이 완료되었습니다!")
                         time.sleep(1)
                         st.session_state.step = 2
                         st.rerun()
-                    else:
-                        st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
 # STEP 2: 트랙 선택
@@ -428,7 +465,7 @@ elif st.session_state.step == 4:
                 st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             
         st.divider()
-        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "📂 내 서류함", "⚙️ 설정"])
+        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "💰 내 몸값 분석", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
         st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
@@ -713,6 +750,49 @@ elif st.session_state.step == 4:
                 st.text_area("복사해서 수정해 보세요!", value=generated_content, height=300)
             else:
                 st.warning("지원하실 기업명을 입력해주세요.")
+
+    # [5] 내 몸값 분석 (New Feature based on AI Career Agent Idea)
+    elif menu == "💰 내 몸값 분석":
+        st.title("💰 내 시장 가치 (Market Value)")
+        st.caption("운동선수처럼 나의 퍼포먼스를 정량화하여 예상 연봉을 측정합니다.")
+
+        # 1. 핵심 지표 요약
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("현재 추정 연봉", "3,800만원", "+200만원 (전월 대비)")
+        with col2:
+            st.metric("내 역량 등급", "S-Rank", "상위 5%")
+        with col3:
+            st.metric("이직 가능성", "매우 높음", "시장 수요 ↑")
+
+        st.divider()
+
+        # 2. 몸값 상세 분석 (차트)
+        st.subheader("📊 몸값 상승 요인 분석")
+        
+        # 가상의 데이터 생성
+        chart_data = pd.DataFrame({
+            '지표': ['직무 경험', '희소성(VISA/Skills)', '트렌드 적합도', '학력/전공', '성향(DNA)'],
+            '점수': [85, 90, 88, 75, 95]
+        })
+
+        st.bar_chart(chart_data, x='지표', y='점수', color='#4A90E2')
+
+        st.info(f"""
+        💡 **AI 분석 리포트**
+        '{user_name}'님의 **{test_key}** 성향은 현재 {target_job} 시장에서 매우 선호되는 특성입니다.
+        특히 업무 다이어리에 기록된 '주도적인 문제해결' 경험들이 몸값 상승의 주요 원인으로 분석됩니다.
+        """)
+
+        # 3. 연봉 협상 시뮬레이터 (MVP)
+        st.subheader("💬 연봉 협상 가이드")
+        with st.expander("연봉 협상 시뮬레이션 돌려보기"):
+            st.write("Q. 회사에서 '희망 연봉이 어떻게 되나요?'라고 묻는다면?")
+            st.markdown("""
+            **추천 답변:**
+            > "현재 저의 직무 경험과 시장 데이터를 분석했을 때, 약 4,000만 원 선이 적절하다고 판단됩니다.
+            특히 지난 인턴십에서 VLOOKUP 자동화를 통해 업무 시간을 30% 단축한 성과를 반영해 주시면 감사하겠습니다."
+            """)
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
