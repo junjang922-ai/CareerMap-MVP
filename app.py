@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.1", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.2", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -515,7 +515,7 @@ elif st.session_state.step == 2.5:
             st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (수정됨: 진단 여부 선택 + 외부 업로드 공존)
+# STEP 3: 상세 진단 (수정: 진단 여부 체크 및 페이지 이동)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -526,7 +526,6 @@ elif st.session_state.step == 3:
     # [Branch] 외국인 트랙
     if track == 'Global':
         st.info("🌏 **Global User Additional Info**")
-        
         col1, col2 = st.columns(2)
         with col1:
             visa_type = st.selectbox("Current Visa (현재 비자)", ["D-2 (유학)", "D-10 (구직)", "E-7 (취업)", "F-series"])
@@ -561,17 +560,23 @@ elif st.session_state.step == 3:
         # 1-1. AI 정밀 진단 여부 확인 (Yes/No)
         st.write("#### Q. Career Map AI 정밀 진단을 받아보시겠어요?")
         
-        test_keyword = st.session_state.user_info.get('test_keyword', '미입력')
+        # [중요 수정] 초기값 확인: '미입력'이거나 '선택해주세요' 상태면 아직 안 한 것으로 간주
+        current_test_key = st.session_state.user_info.get('test_keyword', '미입력')
+        is_done = current_test_key not in ['미입력', '선택해주세요']
         
-        # 이미 진단을 완료한 경우
-        if test_keyword != '미입력':
-             st.success(f"✅ Career Map AI 진단 완료: **{test_keyword}**")
+        if is_done:
+             st.success(f"✅ Career Map AI 진단 완료: **{current_test_key}**")
+             if st.button("🔄 다시 진단하기", key="retake_btn"):
+                 st.session_state.user_info['test_keyword'] = '미입력'
+                 st.rerun()
         
-        # 진단을 아직 안 한 경우
         else:
-            want_diagnosis = st.radio("진단 여부 선택", ["네, 받아볼래요. (추천)", "아니요, 괜찮습니다."], horizontal=True, label_visibility="collapsed")
+            # 진단 여부 묻기 (Yes/No)
+            diagnosis_decision = st.radio("진단 여부 선택", 
+                                          ["선택해주세요", "네, 받아볼래요. (추천)", "아니요, 괜찮습니다."], 
+                                          index=0, horizontal=True, label_visibility="collapsed")
             
-            if want_diagnosis == "네, 받아볼래요. (추천)":
+            if diagnosis_decision == "네, 받아볼래요. (추천)":
                 st.markdown("""
                 <div style="background-color:#E3F2FD; padding:20px; border-radius:12px; border:1px solid #90CAF9; margin-top:10px;">
                     <h4 style="color:#1565C0; margin-top:0;">🤖 AI 커리어 성향 진단</h4>
@@ -582,7 +587,7 @@ elif st.session_state.step == 3:
                 </div>
                 """, unsafe_allow_html=True)
                 st.write("")
-                if st.button("👉 AI 진단 시작하기 (새 페이지)"):
+                if st.button("👉 AI 진단 시작하기 (새 페이지로 이동)"):
                     st.session_state.step = 3.5 # 진단 페이지로 이동
                     st.rerun()
 
@@ -590,13 +595,13 @@ elif st.session_state.step == 3:
         st.divider()
         st.write("")
 
-        # 1-2. 외부 결과 업로드 (항상 표시)
+        # 1-2. 외부 결과 업로드 (항상 표시 - 중복 가능)
         st.markdown("#### Q. 외부 역량검사(마이다스, 잡다 등) 결과표가 있으신가요? (선택)")
         st.caption("결과표(PDF)를 업로드하면 해당 데이터를 기반으로 더 정교하게 분석합니다.")
         
         st.file_uploader("검사 결과표 업로드", type=['pdf', 'jpg', 'png'])
         st.selectbox("결과표의 핵심 성향 키워드를 선택해주세요", 
-                         ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
+                         ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"], key="external_key")
 
         st.write("")
         st.divider()
@@ -622,9 +627,15 @@ elif st.session_state.step == 3:
         
         # 종합 분석 시작 버튼
         if st.button("🚀 AI 통합 분석 시작하기", type="primary"):
-            # 데모용: 진단을 안 했다면 임의 설정
-            if test_keyword == '미입력':
-                st.session_state.user_info['test_keyword'] = "전략가형 (Strategic)"
+            # 데모용: 진단을 안 했다면 임의 설정 (외부 키워드 우선, 없으면 임의)
+            final_key = st.session_state.user_info.get('test_keyword', '미입력')
+            external_key_val = st.session_state.get('external_key', '선택해주세요')
+            
+            if final_key in ['미입력', '선택해주세요']:
+                if external_key_val != '선택해주세요':
+                    st.session_state.user_info['test_keyword'] = external_key_val
+                else:
+                    st.session_state.user_info['test_keyword'] = "전략가형 (Strategic)" # Default
             
             progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
             my_bar = st.progress(0, text=progress_text)
@@ -636,37 +647,48 @@ elif st.session_state.step == 3:
             st.rerun()
 
 # ==========================================
-# STEP 3.5: AI 성향 진단 페이지 (유지)
+# STEP 3.5: AI 성향 진단 페이지 (문항 구현)
 # ==========================================
 elif st.session_state.step == 3.5:
     st.title("🧬 AI 커리어 성향 진단")
     st.markdown("**솔직하게 답변해주세요.** 정답은 없습니다.")
-    st.progress(30) 
     
-    with st.container(border=True):
-        st.markdown("#### Q1. 새로운 프로젝트를 시작할 때, 나는?")
-        st.radio("1번 문항", ["철저하게 계획을 세우고 시작한다.", "일단 부딪혀보며 수정해 나간다."], label_visibility="collapsed")
+    # 간단한 5문항 구현
+    questions = [
+        ("Q1. 새로운 프로젝트를 시작할 때, 나는?", ["철저하게 계획을 세우고 시작한다.", "일단 부딪혀보며 수정해 나간다."]),
+        ("Q2. 팀원과 의견이 충돌할 때, 나는?", ["논리적인 근거를 들어 설득한다.", "상대방의 감정을 먼저 살핀다."]),
+        ("Q3. 내가 더 선호하는 업무 환경은?", ["조용하고 독립적인 공간", "활발하게 소통하는 개방된 공간"]),
+        ("Q4. 예상치 못한 문제가 발생했을 때?", ["원인을 분석하여 근본 해결책을 찾는다.", "빠르게 대안을 찾아 수습부터 한다."]),
+        ("Q5. 리더로서 나의 스타일은?", ["명확한 지시와 방향성을 제시한다.", "팀원의 의견을 수렴하여 함께 결정한다."])
+    ]
     
+    responses = {}
+    
+    for i, (q, opts) in enumerate(questions):
+        st.write("")
+        with st.container(border=True):
+            st.markdown(f"#### {q}")
+            responses[f"q{i+1}"] = st.radio(f"{q} 선택", opts, label_visibility="collapsed", key=f"q_{i}")
+            
+    st.write("")
     st.write("")
     
-    with st.container(border=True):
-        st.markdown("#### Q2. 팀원과 의견이 충돌할 때, 나는?")
-        st.radio("2번 문항", ["논리적인 근거를 들어 설득한다.", "상대방의 감정을 먼저 살핀다."], label_visibility="collapsed")
-    
-    st.write("")
-    
-    with st.container(border=True):
-        st.markdown("#### Q3. 내가 더 선호하는 업무 환경은?")
-        st.radio("3번 문항", ["조용하고 독립적인 공간", "활발하게 소통하는 개방된 공간"], label_visibility="collapsed")
-    
-    st.write("")
-    
-    if st.button("진단 결과 제출하기"):
-        with st.spinner("결과를 분석 중입니다..."):
-            time.sleep(1.5)
-            # 데모 결과 저장
-            st.session_state.user_info['test_keyword'] = "분석가형 (Analytical)"
-            st.session_state.step = 3 # 다시 데이터 연동 페이지로 복귀
+    if st.button("진단 결과 제출하기", type="primary"):
+        with st.spinner("AI가 성향을 분석 중입니다..."):
+            time.sleep(2.0)
+            
+            # (간단한 로직) 1번 선택이 많으면 전략가, 2번이 많으면 소통가/행동가
+            count_opt1 = 0
+            for i in range(len(questions)):
+                if responses[f"q{i+1}"] == questions[i][1][0]:
+                    count_opt1 += 1
+            
+            result_type = "전략가형 (Strategic)" if count_opt1 >= 3 else "소통가형 (Social)"
+            
+            st.session_state.user_info['test_keyword'] = result_type
+            st.success("분석이 완료되었습니다!")
+            time.sleep(1)
+            st.session_state.step = 3 # 다시 데이터 연동 페이지로 복귀 (완료 상태 표시됨)
             st.rerun()
 
 # ==========================================
