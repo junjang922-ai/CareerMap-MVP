@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.9", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.9.1", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -342,7 +342,7 @@ if st.session_state.step == 1:
                         st.rerun()
 
 # ==========================================
-# STEP 2: 트랙 선택 (수정: 다음 단계로 Step 2.5 연결)
+# STEP 2: 트랙 선택 (유지)
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
@@ -370,7 +370,7 @@ elif st.session_state.step == 2:
                 st.write("")
                 if st.button("저학년 트랙 시작", key="btn_junior"):
                     st.session_state.user_info['track'] = 'Junior'
-                    st.session_state.step = 2.5 # [수정] Step 2.5로 이동
+                    st.session_state.step = 2.5 
                     st.rerun()
         with col2:
             with st.container(border=True):
@@ -387,7 +387,7 @@ elif st.session_state.step == 2:
                 st.write("")
                 if st.button("고학년 트랙 시작", key="btn_senior"):
                     st.session_state.user_info['track'] = 'Senior'
-                    st.session_state.step = 2.5 # [수정] Step 2.5로 이동
+                    st.session_state.step = 2.5 
                     st.rerun()
 
     # 2. 외국인 트랙
@@ -413,21 +413,32 @@ elif st.session_state.step == 2:
             st.write("")
             if st.button("Start Global Track 🚀", key="btn_global"):
                 st.session_state.user_info['track'] = 'Global'
-                st.session_state.step = 2.5 # [수정] Step 2.5로 이동
+                st.session_state.step = 2.5 
                 st.rerun()
 
 # ==========================================
-# STEP 2.5: 상세 정보 수집 (신규 추가)
+# STEP 2.5: 상세 정보 수집 (수정됨: 학교/전공 입력 추가)
 # ==========================================
 elif st.session_state.step == 2.5:
     st.title("📝 상세 정보 입력")
     st.markdown("나에게 **딱 맞는 맞춤 포지션**을 제안받기 위해 정보를 입력해주세요.")
     st.write("")
-    st.progress(50) # 진행률 표시
+    st.progress(50) 
 
     with st.form("onboarding_form"):
-        # 1. 학적 정보
-        st.subheader("1. 학적 정보")
+        
+        # [수정] 0. 기본 소속 정보 추가 (Step 3에서 이동됨)
+        st.subheader("1. 소속 정보")
+        col_univ, col_major = st.columns(2)
+        with col_univ:
+            univ = st.text_input("소속 대학", placeholder="예: 연세대학교")
+        with col_major:
+            major = st.text_input("전공", placeholder="예: 경제학과")
+        
+        st.write("")
+
+        # 1. 학적 상태
+        st.subheader("2. 학적 상태")
         col_ac1, col_ac2, col_ac3 = st.columns(3)
         with col_ac1:
             grade = st.selectbox("현재 학년", ["1학년", "2학년", "3학년", "4학년", "졸업유예/수료", "졸업"])
@@ -444,8 +455,8 @@ elif st.session_state.step == 2.5:
 
         st.divider()
 
-        # 2. 희망 직군 (이미지 UI 반영)
-        st.subheader("2. 희망 직군")
+        # 2. 희망 직군
+        st.subheader("3. 희망 직군")
         st.caption("관심있는 직무 분야를 선택해주세요. (복수 선택 가능)")
         
         job_categories = [
@@ -457,16 +468,17 @@ elif st.session_state.step == 2.5:
         
         selected_categories = st.multiselect("희망 직군 선택", job_categories, placeholder="직군을 선택해주세요")
         
+        detailed_job = ""
         if selected_categories:
             st.caption("선택한 직군 내 상세 직무 (예시)")
-            st.text_input("상세 희망 직무 (직접 입력)", placeholder="예: 콘텐츠 마케터, 백엔드 개발자")
+            detailed_job = st.text_input("상세 희망 직무 (직접 입력)", placeholder="예: 콘텐츠 마케터, 백엔드 개발자")
 
         st.divider()
 
         # 3. 근무 조건 및 지역
-        st.subheader("3. 근무 조건")
+        st.subheader("4. 근무 조건")
         
-        # 경력 여부 (이미지 반영)
+        # 경력 여부
         st.markdown("##### 경력 여부")
         career_type = st.radio("경력 여부", 
                  ["신입 (인턴 포함)", "경력 (1년 이상)"], 
@@ -474,14 +486,14 @@ elif st.session_state.step == 2.5:
         
         st.write("")
         
-        # 희망 근무지 (이미지 반영)
+        # 희망 근무지
         st.markdown("##### 희망 근무 지역")
         locations = ["전체", "서울", "경기", "인천", "대전", "부산", "대구", "광주", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"]
         selected_loc = st.multiselect("지역 선택", locations, default=["서울"])
         
         st.write("")
         
-        # 자유 근무 조건 (이미지 반영)
+        # 자유 근무 조건
         st.markdown("##### 희망 근무 조건 (자유 입력)")
         st.caption("금융, IT 등 선호 업종이나 기업 형태(스타트업, 대기업), 연봉 조건 등을 자유롭게 적어주세요.")
         work_cond = st.text_area("조건 입력", height=150, 
@@ -491,13 +503,16 @@ elif st.session_state.step == 2.5:
         submit_onboarding = st.form_submit_button("입력 완료 및 진단 시작하기")
         
         if submit_onboarding:
-            # 정보 저장
+            # 정보 저장 (학교, 전공, 희망직무 포함)
             st.session_state.user_info.update({
+                'univ': univ,
+                'major': major,
                 'grade': grade,
                 'semester': semester,
                 'status': status,
                 'earned_credits': earned_credits,
                 'job_categories': selected_categories,
+                'target_job': detailed_job if detailed_job else "미정", # 대시보드 연동용
                 'career_type': career_type,
                 'locations': selected_loc,
                 'work_cond': work_cond
@@ -508,26 +523,24 @@ elif st.session_state.step == 2.5:
             st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (유지)
+# STEP 3: 상세 진단 (수정됨: 중복 정보 입력 제거)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
     st.title("🧩 데이터 연동 및 진단")
-    st.write("더 정확한 분석을 위해 추가 정보를 입력해주세요.")
+    st.write("더 정확한 분석을 위해 역량 데이터를 연동합니다.")
     st.write("")
 
     # [Branch] 외국인 트랙
     if track == 'Global':
-        st.info("🌏 **Global User Profile Setting**")
+        st.info("🌏 **Global User Additional Info**")
+        
+        # [수정] 학교, 전공 제거 -> 비자와 토픽만 남김
         col1, col2 = st.columns(2)
         with col1:
-            univ = st.text_input("University (학교)", placeholder="ex. Yonsei Univ.")
             visa_type = st.selectbox("Current Visa (현재 비자)", ["D-2 (유학)", "D-10 (구직)", "E-7 (취업)", "F-series"])
         with col2:
-            major = st.text_input("Major (전공)", placeholder="ex. Computer Science")
             topik = st.selectbox("TOPIK Level (한국어 급수)", ["Level 1~2 (Basic)", "Level 3~4 (Intermediate)", "Level 5~6 (Advanced)"])
-        
-        target_job = st.text_input("Target Job (희망 직무)", placeholder="ex. Global Sales, IT Developer")
         
         st.write("")
         st.markdown("### 🧬 Soft Skill Analysis (AI Test)")
@@ -541,11 +554,9 @@ elif st.session_state.step == 3:
             st.radio("Your Work Style", ["Individual Focus", "Team Collaboration"])
             
         st.write("")
-        st.button("🚀 Analyze Visa & Career") 
-        
-        if target_job:
+        if st.button("🚀 Analyze Visa & Career"):
             st.session_state.user_info.update({
-                'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword,
+                'test_keyword': test_keyword,
                 'visa_type': visa_type, 'topik': topik
             })
             time.sleep(1)
@@ -554,16 +565,7 @@ elif st.session_state.step == 3:
 
     # [Branch] 내국인 트랙
     else: 
-        col1, col2 = st.columns(2)
-        with col1:
-            univ = st.text_input("소속 대학", placeholder="예: 연세대학교")
-        with col2:
-            major = st.text_input("전공", placeholder="예: 경제학과")
-
-        target_job = st.text_input("관심 직무/분야 (필수)", placeholder="예: 마케팅, 데이터 분석, 금융권 등")
-        
-        st.write("")
-        
+        # [수정] 학교, 전공, 희망직무 입력란 제거됨 (Step 2.5에서 입력받음)
         st.markdown("### 🧬 AI 역량/성향 데이터 연동")
         
         # 디자인 개선된 박스 (블루 테마)
@@ -596,21 +598,17 @@ elif st.session_state.step == 3:
         
         st.write("")
         if st.button("🚀 AI 통합 분석 시작하기"):
-            if target_job:
-                st.session_state.user_info.update({
-                    'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
-                })
-                
-                progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
-                my_bar = st.progress(0, text=progress_text)
-                for percent_complete in range(100):
-                    time.sleep(0.02)
-                    my_bar.progress(percent_complete + 1)
-                
-                st.session_state.step = 4
-                st.rerun()
-            else:
-                st.warning("관심 직무는 필수 입력 사항입니다.")
+            # 데이터 처리 시뮬레이션
+            st.session_state.user_info['test_keyword'] = test_keyword
+            
+            progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
+            my_bar = st.progress(0, text=progress_text)
+            for percent_complete in range(100):
+                time.sleep(0.02)
+                my_bar.progress(percent_complete + 1)
+            
+            st.session_state.step = 4
+            st.rerun()
 
 # ==========================================
 # STEP 4: 메인 대시보드 (유지)
