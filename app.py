@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v6.6", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.7", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리 (기능 100% 유지)
 if 'step' not in st.session_state:
@@ -49,10 +49,10 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* 3. 버튼 (Primary: Soft Azure) */
+    /* 3. 버튼 (Primary: Soft Azure) - [수정됨: 흰색 글씨 강제 적용] */
     .stButton > button {
-        background-color: #4A90E2; /* Clubmate Blue */
-        color: white;
+        background-color: #4A90E2 !important; /* Clubmate Blue */
+        color: #FFFFFF !important; /* 텍스트 완전 흰색 강제 */
         border: none;
         border-radius: 12px;
         padding: 0.8rem 1.5rem;
@@ -63,9 +63,18 @@ st.markdown("""
         transition: all 0.2s ease;
     }
     .stButton > button:hover {
-        background-color: #357ABD;
+        background-color: #357ABD !important;
+        color: #FFFFFF !important;
         transform: translateY(-2px);
         box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
+    }
+    .stButton > button:active {
+        color: #FFFFFF !important;
+        background-color: #2a65a0 !important;
+    }
+    /* 버튼 내부 텍스트 요소까지 확실하게 흰색 처리 */
+    .stButton > button p {
+        color: #FFFFFF !important;
     }
     
     /* 4. 카드 디자인 (Clean & Rounded) */
@@ -137,7 +146,13 @@ st.markdown("""
         border-right: 1px solid #E1E8EE;
     }
     
-    /* 10. 기타 포인트 컬러 (Green for Action) */
+    /* 10. 탭 스타일 (선택된 탭 강조) */
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        color: #4A90E2 !important;
+        border-color: #4A90E2 !important;
+    }
+    
+    /* 11. 기타 포인트 컬러 */
     .highlight-green {
         color: #66BB6A;
         font-weight: bold;
