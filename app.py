@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import time
 import datetime
+import random # 다이어리 랜덤 질문용
 import graphviz # 로드맵 시각화용 (필수)
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v5.7", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v6.1", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -13,7 +14,16 @@ if 'step' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
-# 스타일링 (서핏 느낌의 카드 UI)
+# [New] 다이어리 데이터 초기화 (v6.0 기능)
+if 'diary_logs' not in st.session_state:
+    st.session_state.diary_logs = [
+        {"date": "2026-02-01", "q": "오늘 가장 뿌듯했던 일은?", "a": "사수님께 엑셀 정리 잘했다고 칭찬받음! VLOOKUP 드디어 마스터했다."},
+        {"date": "2026-02-02", "q": "오늘 실수한 점이 있다면?", "a": "메일 참조(CC)에 팀장님을 빼먹었다... 다음엔 꼭 더블체크 하자."}
+    ]
+if 'diary_streak' not in st.session_state:
+    st.session_state.diary_streak = 3
+
+# 스타일링 (v5.7 유지 + 다이어리 스타일 추가)
 st.markdown("""
     <style>
     .main {background-color: #F8F9FA;}
@@ -33,11 +43,19 @@ st.markdown("""
     .ai-box {
         background-color: #F3E5F5; border: 1px solid #CE93D8; padding: 15px; border-radius: 10px; margin-bottom: 20px;
     }
+    
+    /* [New] 다이어리 스타일 */
+    .diary-card {
+        background-color: #FFF3E0; border-left: 5px solid #FF9800; padding: 15px; border-radius: 10px; margin-bottom: 10px;
+    }
+    .question-box {
+        font-size: 18px; font-weight: bold; color: #E65100; margin-bottom: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입
+# STEP 1: 로그인 및 회원가입 (v5.7 유지)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -94,7 +112,7 @@ if st.session_state.step == 1:
                         st.error("필수 정보를 모두 입력해주세요.")
 
 # ==========================================
-# STEP 2: 트랙 선택
+# STEP 2: 트랙 선택 (v5.7 유지)
 # ==========================================
 elif st.session_state.step == 2:
     user_name = st.session_state.user_info.get('name', '사용자')
@@ -122,7 +140,7 @@ elif st.session_state.step == 2:
                 st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 & 역량검사 추가 (New!)
+# STEP 3: 상세 진단 & 역량검사 추가 (v5.7 유지)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -138,7 +156,6 @@ elif st.session_state.step == 3:
     
     st.write("")
     
-    # --- [역량검사 추가 기능] ---
     st.markdown("### 🧬 AI 역량/성향 데이터 연동")
     with st.container(border=True):
         st.markdown("""
@@ -175,7 +192,6 @@ elif st.session_state.step == 3:
                 'univ': univ, 'major': major, 'target_job': target_job, 'test_keyword': test_keyword
             })
             
-            # 로딩 연출
             progress_text = "성향(Soft Skill)과 이력서(Hard Skill) 데이터를 결합 중입니다..."
             my_bar = st.progress(0, text=progress_text)
             for percent_complete in range(100):
@@ -188,7 +204,7 @@ elif st.session_state.step == 3:
             st.warning("관심 직무는 필수 입력 사항입니다.")
 
 # ==========================================
-# STEP 4: 메인 대시보드 (v5.3 로드맵 기능 완벽 복원)
+# STEP 4: 메인 대시보드
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -197,7 +213,7 @@ elif st.session_state.step == 4:
     test_key = st.session_state.user_info.get('test_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
-    # [사이드바]
+    # [사이드바] - 다이어리 메뉴 추가됨
     with st.sidebar:
         st.title("🧭 Career Map")
         st.write(f"**{user_name}**님")
@@ -209,13 +225,13 @@ elif st.session_state.step == 4:
             st.success(f"🧬 **DNA:** {test_key}")
             
         st.divider()
-        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📂 내 서류함", "⚙️ 설정"])
+        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "📂 내 서류함", "⚙️ 설정"])
         
         st.divider()
         st.markdown("💡 **Premium Service**")
         st.write("현직자 1:1 멘토링 매칭")
 
-    # [메인 화면 1] 홈 (Feed)
+    # [1] 홈 (Feed) - v5.7 유지
     if menu == "🏠 홈 (Feed)":
         st.header(f"🔥 {target_job} 분야 트렌드")
         
@@ -270,8 +286,18 @@ elif st.session_state.step == 4:
                 <p>5. <b>LG에너지솔루션</b></p>
             </div>
             """, unsafe_allow_html=True)
+            
+            st.write("")
+            st.subheader("📅 주요 일정")
+            st.markdown("""
+            <div class="metric-box">
+                <p>✅ <b>2/14</b> 상반기 공채 설명회</p>
+                <p>⚠️ <b>2/20</b> 토익 시험 접수 마감</p>
+                <p>📅 <b>2/28</b> 삼성전자 서류 오픈(예상)</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # [메인 화면 2] 로드맵/전략 (Graphviz 복원!)
+    # [2] 로드맵/전략 - v5.7 (구체적 리포트) 유지!
     elif menu == "🗺️ 나의 로드맵/전략":
         
         # --- [1] 저학년: Roadmap.sh 스타일 (Graphviz) ---
@@ -282,14 +308,10 @@ elif st.session_state.step == 4:
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                # Graphviz로 roadmap.sh 스타일 그리기 (v5.3 코드 복원)
                 graph = graphviz.Digraph()
-                graph.attr(rankdir='TB') # 위에서 아래로 (Top to Bottom)
-                
-                # 노드 스타일 설정
+                graph.attr(rankdir='TB') 
                 graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#4A90E2', fontname="sans-serif")
                 
-                # 단계별 노드 생성
                 graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
                 graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
                 graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
@@ -304,7 +326,6 @@ elif st.session_state.step == 4:
                 elif "소통가" in test_key:
                     graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
 
-                # 연결선 그리기
                 graph.edge('Start', 'GPA')
                 graph.edge('Start', 'Eng')
                 graph.edge('GPA', 'Club')
@@ -333,7 +354,7 @@ elif st.session_state.step == 4:
                 st.checkbox("SQLD 자격증 따기 (난이도: 중)")
                 st.checkbox("Y.E.S 경제학회 지원하기")
 
-        # --- [2] 고학년: LinkedIn 스타일 (전략 리포트) ---
+        # --- [2] 고학년: v5.7의 구체적 전략 리포트 (유지) ---
         else: # Senior
             st.title("📊 합격 전략 리포트")
             st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
@@ -377,6 +398,65 @@ elif st.session_state.step == 4:
                 </ul>
             </div>
             """, unsafe_allow_html=True)
+
+    # [3] 업무 다이어리 (New Feature!)
+    elif menu == "📝 업무 다이어리":
+        st.title("📝 인턴 업무 다이어리 (Career Log)")
+        st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요. (AI 자소서의 기초 데이터가 됩니다)")
+        
+        # 1. 연속 기록 (Streak)
+        st.markdown(f"""
+        <div style="background-color:#FFF3E0; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center;">
+            <h3 style="color:#E65100; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
+            <p style="margin:5px 0 0 0;">하루만 더 쓰면 레벨업! 꾸준함이 최고의 스펙입니다.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. 오늘의 질문 (랜덤 추천)
+        today_questions = [
+            "오늘 사수님이나 동료에게 들은 피드백이 있나요?",
+            "오늘 업무 중 가장 뿌듯했던 순간은 언제인가요?",
+            "오늘 실수하거나 아쉬웠던 점은 무엇인가요?",
+            "오늘 새로 배운 업무 용어나 스킬이 있나요?"
+        ]
+        if 'today_q' not in st.session_state:
+            st.session_state.today_q = random.choice(today_questions)
+            
+        col1, col2 = st.columns([1.5, 1])
+        
+        with col1:
+            st.markdown(f"""
+            <div class="question-box">Q. {st.session_state.today_q}</div>
+            """, unsafe_allow_html=True)
+            
+            # 답변 입력
+            diary_input = st.text_area("답변을 입력하세요", height=100, placeholder="예: 오늘 엑셀 VLOOKUP 함수를 써서 1시간 걸릴 일을 10분 만에 끝냈다. 팀장님이 손이 빠르다고 칭찬해주셨다.")
+            
+            if st.button("오늘의 기록 저장하기 ✨"):
+                if diary_input:
+                    new_log = {
+                        "date": datetime.date.today().strftime("%Y-%m-%d"),
+                        "q": st.session_state.today_q,
+                        "a": diary_input
+                    }
+                    st.session_state.diary_logs.insert(0, new_log)
+                    st.session_state.diary_streak += 1
+                    st.success("저장되었습니다! 내일도 잊지 마세요.")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.warning("내용을 입력해주세요.")
+                    
+        with col2:
+            st.markdown("### 📅 지난 기록 모아보기")
+            for log in st.session_state.diary_logs:
+                st.markdown(f"""
+                <div class="diary-card">
+                    <span style="font-size:12px; color:#666;">{log['date']}</span><br>
+                    <b>Q. {log['q']}</b><br>
+                    <span style="color:#333;">{log['a']}</span>
+                </div>
+                """, unsafe_allow_html=True)
 
     elif menu == "📂 내 서류함":
         st.title("📂 내 서류함")
