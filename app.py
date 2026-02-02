@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.2", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.3", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -189,7 +189,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (유지)
+# STEP 1: 로그인 및 회원가입 (수정: 로그인 시 바로 Step 4)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -211,13 +211,24 @@ if st.session_state.step == 1:
                 st.write("")
                 if st.button("시작하기"):
                     if login_id:
-                        st.session_state.user_info['name'] = login_id + "님"
-                        st.session_state.step = 2
+                        # [수정] 로그인 성공 시 기존 회원 데이터 로드 시뮬레이션 -> 바로 Step 4로 이동
+                        st.session_state.user_info = {
+                            'id': login_id,
+                            'name': login_id + "님",
+                            'track': 'Senior', # 기존 회원 가정
+                            'univ': '연세대학교',
+                            'major': '경영학과',
+                            'target_job': 'PM/서비스기획',
+                            'test_keyword': '전략가형 (Strategic)',
+                            'visa_type': 'D-2',
+                            'topik': 'Level 5'
+                        }
+                        st.session_state.step = 4 # 대시보드로 직행
                         st.rerun()
                     else:
                         st.warning("아이디를 입력해주세요.")
 
-        # [Tab 2] 회원가입
+        # [Tab 2] 회원가입 (유지: 가입 후 Step 2로 이동)
         with tab2:
             st.markdown("#### 환영합니다! 👋\n**당신의 취업을 진심으로 응원해요**")
             st.write("")
@@ -338,7 +349,7 @@ if st.session_state.step == 1:
                         }
                         st.success("가입이 완료되었습니다!")
                         time.sleep(1)
-                        st.session_state.step = 2
+                        st.session_state.step = 2 # 신규 가입자는 Step 2로 이동
                         st.rerun()
 
 # ==========================================
@@ -515,7 +526,7 @@ elif st.session_state.step == 2.5:
             st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (수정: 진단 여부 체크 및 페이지 이동)
+# STEP 3: 상세 진단 (유지)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -560,7 +571,6 @@ elif st.session_state.step == 3:
         # 1-1. AI 정밀 진단 여부 확인 (Yes/No)
         st.write("#### Q. Career Map AI 정밀 진단을 받아보시겠어요?")
         
-        # [중요 수정] 초기값 확인: '미입력'이거나 '선택해주세요' 상태면 아직 안 한 것으로 간주
         current_test_key = st.session_state.user_info.get('test_keyword', '미입력')
         is_done = current_test_key not in ['미입력', '선택해주세요']
         
@@ -571,7 +581,6 @@ elif st.session_state.step == 3:
                  st.rerun()
         
         else:
-            # 진단 여부 묻기 (Yes/No)
             diagnosis_decision = st.radio("진단 여부 선택", 
                                           ["선택해주세요", "네, 받아볼래요. (추천)", "아니요, 괜찮습니다."], 
                                           index=0, horizontal=True, label_visibility="collapsed")
@@ -588,14 +597,14 @@ elif st.session_state.step == 3:
                 """, unsafe_allow_html=True)
                 st.write("")
                 if st.button("👉 AI 진단 시작하기 (새 페이지로 이동)"):
-                    st.session_state.step = 3.5 # 진단 페이지로 이동
+                    st.session_state.step = 3.5 
                     st.rerun()
 
         st.write("")
         st.divider()
         st.write("")
 
-        # 1-2. 외부 결과 업로드 (항상 표시 - 중복 가능)
+        # 1-2. 외부 결과 업로드
         st.markdown("#### Q. 외부 역량검사(마이다스, 잡다 등) 결과표가 있으신가요? (선택)")
         st.caption("결과표(PDF)를 업로드하면 해당 데이터를 기반으로 더 정교하게 분석합니다.")
         
@@ -607,7 +616,7 @@ elif st.session_state.step == 3:
         st.divider()
         st.write("")
 
-        # [New Feature] 이력서/자소서 분석 (유지)
+        # 2. 이력서/자소서 분석
         st.markdown("### 2. 이력서/경험 분해 (Hard Skill)")
         st.markdown("""
         <div style="border: 2px solid #4A90E2; border-radius: 12px; padding: 20px; background-color: #FDFEFF;">
@@ -625,9 +634,7 @@ elif st.session_state.step == 3:
         st.write("")
         st.write("")
         
-        # 종합 분석 시작 버튼
         if st.button("🚀 AI 통합 분석 시작하기", type="primary"):
-            # 데모용: 진단을 안 했다면 임의 설정 (외부 키워드 우선, 없으면 임의)
             final_key = st.session_state.user_info.get('test_keyword', '미입력')
             external_key_val = st.session_state.get('external_key', '선택해주세요')
             
@@ -647,13 +654,12 @@ elif st.session_state.step == 3:
             st.rerun()
 
 # ==========================================
-# STEP 3.5: AI 성향 진단 페이지 (문항 구현)
+# STEP 3.5: AI 성향 진단 페이지 (유지)
 # ==========================================
 elif st.session_state.step == 3.5:
     st.title("🧬 AI 커리어 성향 진단")
     st.markdown("**솔직하게 답변해주세요.** 정답은 없습니다.")
     
-    # 간단한 5문항 구현
     questions = [
         ("Q1. 새로운 프로젝트를 시작할 때, 나는?", ["철저하게 계획을 세우고 시작한다.", "일단 부딪혀보며 수정해 나간다."]),
         ("Q2. 팀원과 의견이 충돌할 때, 나는?", ["논리적인 근거를 들어 설득한다.", "상대방의 감정을 먼저 살핀다."]),
@@ -677,7 +683,6 @@ elif st.session_state.step == 3.5:
         with st.spinner("AI가 성향을 분석 중입니다..."):
             time.sleep(2.0)
             
-            # (간단한 로직) 1번 선택이 많으면 전략가, 2번이 많으면 소통가/행동가
             count_opt1 = 0
             for i in range(len(questions)):
                 if responses[f"q{i+1}"] == questions[i][1][0]:
@@ -688,7 +693,7 @@ elif st.session_state.step == 3.5:
             st.session_state.user_info['test_keyword'] = result_type
             st.success("분석이 완료되었습니다!")
             time.sleep(1)
-            st.session_state.step = 3 # 다시 데이터 연동 페이지로 복귀 (완료 상태 표시됨)
+            st.session_state.step = 3 
             st.rerun()
 
 # ==========================================
