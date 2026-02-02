@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.0", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.1", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -515,7 +515,7 @@ elif st.session_state.step == 2.5:
             st.rerun()
 
 # ==========================================
-# STEP 3: 상세 진단 (수정됨: 진단 페이지 연결 & 이력서 New Feature)
+# STEP 3: 상세 진단 (수정됨: 진단 여부 선택 + 외부 업로드 공존)
 # ==========================================
 elif st.session_state.step == 3:
     track = st.session_state.user_info.get('track', 'Senior')
@@ -558,50 +558,51 @@ elif st.session_state.step == 3:
     else: 
         st.markdown("### 1. 성향/역량 분석 (Soft Skill)")
         
-        # 성향 진단 옵션 선택
-        diagnosis_type = st.radio("분석 방법 선택", ["Career Map AI 정밀 진단 (추천)", "외부 검사 결과(PDF) 업로드"], horizontal=True)
-        
-        st.write("")
+        # 1-1. AI 정밀 진단 여부 확인 (Yes/No)
+        st.write("#### Q. Career Map AI 정밀 진단을 받아보시겠어요?")
         
         test_keyword = st.session_state.user_info.get('test_keyword', '미입력')
         
-        # [Option 1] AI 정밀 진단 (새로운 페이지로 연결)
-        if diagnosis_type == "Career Map AI 정밀 진단 (추천)":
-            st.markdown("""
-            <div style="background-color:#E3F2FD; padding:20px; border-radius:12px; border:1px solid #90CAF9;">
-                <h4 style="color:#1565C0; margin-top:0;">🤖 AI 커리어 성향 진단</h4>
-                <p style="color:#424242; font-size:14px;">
-                20개의 문항을 통해 나의 <b>업무 스타일, 소통 방식, 강점</b>을 정밀하게 분석합니다.<br>
-                진단 결과는 로드맵 설계에 자동으로 반영됩니다. (소요시간: 약 3분)
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.write("")
+        # 이미 진단을 완료한 경우
+        if test_keyword != '미입력':
+             st.success(f"✅ Career Map AI 진단 완료: **{test_keyword}**")
+        
+        # 진단을 아직 안 한 경우
+        else:
+            want_diagnosis = st.radio("진단 여부 선택", ["네, 받아볼래요. (추천)", "아니요, 괜찮습니다."], horizontal=True, label_visibility="collapsed")
             
-            if test_keyword != '미입력':
-                st.success(f"✅ 진단 완료: **{test_keyword}** 유형")
-            else:
+            if want_diagnosis == "네, 받아볼래요. (추천)":
+                st.markdown("""
+                <div style="background-color:#E3F2FD; padding:20px; border-radius:12px; border:1px solid #90CAF9; margin-top:10px;">
+                    <h4 style="color:#1565C0; margin-top:0;">🤖 AI 커리어 성향 진단</h4>
+                    <p style="color:#424242; font-size:14px;">
+                    20개의 문항을 통해 나의 <b>업무 스타일, 소통 방식, 강점</b>을 정밀하게 분석합니다.<br>
+                    진단 결과는 로드맵 설계에 자동으로 반영됩니다. (소요시간: 약 3분)
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.write("")
                 if st.button("👉 AI 진단 시작하기 (새 페이지)"):
                     st.session_state.step = 3.5 # 진단 페이지로 이동
                     st.rerun()
 
-        # [Option 2] 외부 결과 업로드
-        else:
-            st.markdown("""
-            <div class="ai-box" style="background-color:#F5F5F5; border:1px solid #E0E0E0; box-shadow:none;">
-                <b style="color:#616161;">📢 외부 역량검사(마이다스, 잡다 등) 결과표가 있으신가요?</b><br>
-                <span style="color:#757575;">결과표(PDF)를 업로드하면 해당 데이터를 기반으로 분석합니다.</span>
-            </div>
-            """, unsafe_allow_html=True)
-            st.file_uploader("검사 결과표 업로드", type=['pdf', 'jpg', 'png'])
-            st.selectbox("결과표의 핵심 성향 키워드를 선택해주세요", 
+        st.write("")
+        st.divider()
+        st.write("")
+
+        # 1-2. 외부 결과 업로드 (항상 표시)
+        st.markdown("#### Q. 외부 역량검사(마이다스, 잡다 등) 결과표가 있으신가요? (선택)")
+        st.caption("결과표(PDF)를 업로드하면 해당 데이터를 기반으로 더 정교하게 분석합니다.")
+        
+        st.file_uploader("검사 결과표 업로드", type=['pdf', 'jpg', 'png'])
+        st.selectbox("결과표의 핵심 성향 키워드를 선택해주세요", 
                          ["선택해주세요", "전략가형 (Strategic)", "분석가형 (Analytical)", "소통가형 (Social)", "개척자형 (Challenger)"])
 
         st.write("")
         st.divider()
         st.write("")
 
-        # [New Feature] 이력서/자소서 분석
+        # [New Feature] 이력서/자소서 분석 (유지)
         st.markdown("### 2. 이력서/경험 분해 (Hard Skill)")
         st.markdown("""
         <div style="border: 2px solid #4A90E2; border-radius: 12px; padding: 20px; background-color: #FDFEFF;">
@@ -635,12 +636,12 @@ elif st.session_state.step == 3:
             st.rerun()
 
 # ==========================================
-# STEP 3.5: AI 성향 진단 페이지 (신규 추가)
+# STEP 3.5: AI 성향 진단 페이지 (유지)
 # ==========================================
 elif st.session_state.step == 3.5:
     st.title("🧬 AI 커리어 성향 진단")
     st.markdown("**솔직하게 답변해주세요.** 정답은 없습니다.")
-    st.progress(30) # 진행률 예시
+    st.progress(30) 
     
     with st.container(border=True):
         st.markdown("#### Q1. 새로운 프로젝트를 시작할 때, 나는?")
