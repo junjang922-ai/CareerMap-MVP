@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.4", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.5 (Wayble Update)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -697,7 +697,7 @@ elif st.session_state.step == 3.5:
             st.rerun()
 
 # ==========================================
-# STEP 4: 메인 대시보드 (Global Track 고도화)
+# STEP 4: 메인 대시보드
 # ==========================================
 elif st.session_state.step == 4:
     
@@ -722,6 +722,7 @@ elif st.session_state.step == 4:
             menu = st.radio("MENU", [
                 "🏠 Dashboard", 
                 "🛂 Visa Calculator (F-2-7)", 
+                "🗺️ Visa Roadmap", 
                 "🏢 Visa-Sponsored Jobs", 
                 "📝 AI Resume Builder (Eng to Kor)",
                 "⚙️ Settings"
@@ -743,132 +744,262 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features
+    # [Branch 1] Global Track Features (Wayble Benchmarked Upgrade)
     # ----------------------------------------------------------------
     if track == 'Global':
         
-        # 1. Dashboard
+        # 1. Dashboard (Main)
         if menu == "🏠 Dashboard":
             st.title(f"Hello, {user_name}! 👋")
-            st.markdown("Here is your specialized career & visa report.")
+            st.caption("Your personalized Visa & Career Dashboard")
             
-            # (1) Visa Probability Banner
-            st.markdown("""
-            <div class="banner-gradient">
-                <h2 style='color:white; margin:0;'>🌏 Your E-7 Visa Probability: 85%</h2>
-                <p style='margin:5px 0 0 0;'>Great! You are in the <b>'Safe Zone'</b> for graduation employment.</p>
-                <p style='font-size:13px; opacity:0.8;'>*Based on Major, TOPIK, and University Ranking.</p>
+            # [SECTION A] Status Summary (Wayble Style: Confidence Building)
+            # 현재 비자 상태와 목표(E-7/F-2-7)까지의 거리를 시각화
+            current_points = 65 # 예시 점수
+            target_points = 80
+            gap = target_points - current_points
+            
+            st.markdown(f"""
+            <div class="banner-gradient" style="padding: 25px;">
+                <h2 style='color:white; margin:0; font-size:24px;'>🛂 Visa Probability: <span style="color:#FFF176;">Safe Zone (85%)</span></h2>
+                <p style='margin:5px 0 15px 0; font-size:15px;'>You are currently holding <b>D-2 Visa</b>. Your F-2-7 Point is <b>{current_points} pts</b>.</p>
+                <div style="background-color:rgba(255,255,255,0.3); border-radius:10px; height:8px; width:100%;">
+                    <div style="background-color:#FFF176; width:{current_points/target_points*100}%; height:100%; border-radius:10px;"></div>
+                </div>
+                <p style='margin:5px 0 0 0; font-size:12px; text-align:right;'>Target: 80 pts (Gap: {gap})</p>
             </div>
             """, unsafe_allow_html=True)
             
-            col1, col2 = st.columns([1, 1])
-            with col1:
-                st.subheader("🔥 Hot Jobs for Foreigners")
+            col_d1, col_d2 = st.columns([1.2, 0.8])
+            
+            # [SECTION B] Weekly Quests (Action Items)
+            with col_d1:
+                st.subheader("✅ Weekly Quests")
+                st.caption("Complete these to boost your visa points.")
+                
+                quests = [
+                    {"title": "Take TOPIK Mock Test", "desc": "Aim for Level 5 to get +5 pts", "done": False, "tag": "Korean"},
+                    {"title": "Complete KIIP Level 4", "desc": "Social Integration Program", "done": True, "tag": "Visa Point"},
+                    {"title": "Update Resume (Kor)", "desc": "Use AI Builder for E-7 Jobs", "done": False, "tag": "Career"}
+                ]
+                
+                for q in quests:
+                    icon = "✅" if q['done'] else "⬜"
+                    opacity = "0.6" if q['done'] else "1.0"
+                    st.markdown(f"""
+                    <div class="feed-card" style="padding:15px; display:flex; align-items:center; opacity:{opacity};">
+                        <div style="font-size:20px; margin-right:15px;">{icon}</div>
+                        <div style="flex-grow:1;">
+                            <span class="tag" style="font-size:11px;">{q['tag']}</span>
+                            <h4 style="margin:5px 0; font-size:16px;">{q['title']}</h4>
+                            <p style="margin:0; font-size:13px; color:#666;">{q['desc']}</p>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            # [SECTION C] Recommended Jobs (Visa Filtered)
+            with col_d2:
+                st.subheader("🔥 Top Pick for You")
                 st.markdown(f"""
-                <div class="feed-card">
+                <div class="feed-card" style="border:1px solid #4A90E2;">
                     <span class="tag" style="background-color:#E3F2FD; color:#1565C0;">Visa Sponsored</span>
-                    <h4 style="margin: 10px 0;">[Kakao Mobility] Global Strategy Intern</h4>
-                    <p style="color:#546E7A; font-size:14px; margin:0;">
-                    ✅ <b>Fluent English</b> required<br>
-                    ✅ Prefer <b>{target_job}</b> background
+                    <h4 style="margin: 10px 0;">Global Strategist</h4>
+                    <p style="font-weight:600; color:#333; margin-bottom:5px;">Kakao Mobility</p>
+                    <p style="color:#546E7A; font-size:13px; margin:0;">
+                    • F-series Visa preferred<br>
+                    • English Native level
                     </p>
+                    <button style="width:100%; margin-top:10px; background-color:#4A90E2; color:white; border:none; padding:8px; border-radius:6px;">View Details</button>
                 </div>
                 """, unsafe_allow_html=True)
-            
-            with col2:
-                st.subheader("📢 Weekly Visa Update")
+                
                 st.markdown("""
-                <div class="metric-box">
-                    <p><b>🆕 F-2-R Visa Pilot Expanded</b></p>
-                    <p style="font-size:13px; color:#555;">The Ministry of Justice announced the expansion of the Regional Specialized Residency Visa...</p>
-                    <hr style="margin:10px 0;">
-                    <a href="#" style="text-decoration:none; color:#4A90E2; font-size:13px;">Read more ></a>
+                <div class="metric-box" style="padding:15px;">
+                    <p style="font-size:14px; font-weight:bold;">📢 Visa News</p>
+                    <p style="font-size:12px; margin-bottom:0;">E-7-4 Quota has been increased by 20% this year...</p>
                 </div>
                 """, unsafe_allow_html=True)
 
-        # 2. Visa Calculator (F-2-7 Points) - [NEW]
+        # 2. Visa Calculator (Interactive & Detailed)
         elif menu == "🛂 Visa Calculator (F-2-7)":
             st.title("🧮 F-2-7 Visa Point Calculator")
-            st.caption("The F-2-7 visa (Points-Based Resident) allows more freedom in changing jobs. Check your score!")
+            st.caption("Check your eligibility for the Points-Based Resident Visa (F-2-7). You need **80 points** out of 100.")
             
+            # Interactive Input Section
             with st.container(border=True):
-                col_v1, col_v2 = st.columns(2)
-                with col_v1:
-                    age = st.selectbox("Age", ["20-24 (23pts)", "25-29 (25pts)", "30-34 (23pts)"], index=1)
-                    edu = st.selectbox("Education", ["Bachelor (10pts)", "Bachelor (STEM) (10+2pts)", "Master (15pts)", "Ph.D (20pts)"], index=0)
-                with col_v2:
-                    topik_score = st.selectbox("Korean Ability (TOPIK)", ["Level 1 (0pts)", "Level 3 (10pts)", "Level 4 (15pts)", "Level 5+ (20pts)"], index=2)
-                    income = st.selectbox("Expected Yearly Income", ["None (Student)", "Over 30M KRW (10pts)", "Over 40M KRW (20pts)"], index=0)
+                st.subheader("1. Base Points")
+                c1, c2 = st.columns(2)
+                with c1:
+                    age_opt = st.selectbox("Age", 
+                        ["20-24 (+23)", "25-29 (+25)", "30-34 (+23)", "35-39 (+20)"], index=1)
+                    edu_opt = st.selectbox("Education", 
+                        ["Bachelor (+10)", "Bachelor(STEM) (+12)", "Master (+15)", "Master(STEM) (+17)", "Ph.D (+20)"], index=0)
+                with c2:
+                    topik_opt = st.selectbox("Korean (TOPIK/KIIP)", 
+                        ["Level 1 (+0)", "Level 2 (+5)", "Level 3 (+10)", "Level 4 (+15)", "Level 5+ (+20)"], index=3)
+                    income_opt = st.selectbox("Yearly Income (Expected)", 
+                        ["None (Student) (+0)", "Over 30M KRW (+10)", "Over 40M KRW (+20)", "Over 50M KRW (+30)"], index=1)
                 
-                # 가상의 점수 계산 로직
-                current_score = 65  # Dummy base score
+                # Dynamic Calculation Logic
+                score = 0
+                score += int(age_opt.split('+')[1].replace(')', ''))
+                score += int(edu_opt.split('+')[1].replace(')', ''))
+                score += int(topik_opt.split('+')[1].replace(')', ''))
+                score += int(income_opt.split('+')[1].replace(')', ''))
                 
-                st.write("")
-                st.progress(current_score / 100)
-                st.metric(label="Your Estimated Score", value=f"{current_score} / 80 Points", delta="-15 Points needed")
+                st.divider()
                 
-                if current_score < 80:
-                    st.error("🚨 You need 15 more points to apply for F-2-7.")
-                    st.markdown("""
-                    **💡 How to boost your score?**
-                    - 📚 **KIIP Program:** Complete Level 5 (+10 pts)
-                    - 💼 **Income:** Secure a job with 30M+ KRW (+10 pts)
-                    """)
-                else:
-                    st.success("🎉 You are eligible to apply!")
+                st.subheader("2. Bonus Points")
+                c3, c4 = st.columns(2)
+                with c3:
+                    kiip = st.checkbox("KIIP Completion (+10)")
+                    top_uni = st.checkbox("Times Top 500 Univ. (+15)")
+                with c4:
+                    korea_edu = st.checkbox("Study in Korea (3yr+) (+10)")
+                    volunteer = st.checkbox("Social Volunteer (>1yr) (+3)")
+                
+                if kiip: score += 10
+                if top_uni: score += 15
+                if korea_edu: score += 10
+                if volunteer: score += 3
 
-        # 3. Visa-Sponsored Job Board - [NEW]
+                # Result Visualization
+                st.write("")
+                st.write("")
+                st.markdown(f"<h3 style='text-align:center;'>Total Score: <span style='color:#4A90E2;'>{score}</span> / 100</h3>", unsafe_allow_html=True)
+                
+                # Progress Bar Color Logic
+                bar_color = "#4CAF50" if score >= 80 else "#FF9800"
+                st.markdown(f"""
+                <div style="background-color:#EEE; border-radius:15px; height:20px; width:100%; margin-bottom:10px;">
+                    <div style="background-color:{bar_color}; width:{min(score, 100)}%; height:100%; border-radius:15px; transition: width 0.5s;"></div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if score >= 80:
+                    st.success("🎉 Congratulations! You are eligible to apply for F-2-7.")
+                else:
+                    needed = 80 - score
+                    st.error(f"🚨 You need {needed} more points.")
+                    
+                    # Gap Analysis (Wayble Style)
+                    st.markdown("#### 💡 How to fill the Gap?")
+                    st.markdown(f"""
+                    <div class="feed-card">
+                        <b>Recommendations:</b>
+                        <ul>
+                            <li>📚 <b>KIIP Program:</b> Easiest way to get +10 points. (Takes 6 months)</li>
+                            <li>💰 <b>Income Strategy:</b> Negotiate salary over 30M KRW.</li>
+                            <li>🎓 <b>Education:</b> A Master's degree gives you +5 more points.</li>
+                        </ul>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        # 3. Visa Roadmap (Graphviz Visualization)
+        elif menu == "🗺️ Visa Roadmap":
+            st.title("🗺️ Visa Roadmap")
+            st.caption("Your strategic timeline from Student to Resident.")
+            
+            col_r1, col_r2 = st.columns([3, 1])
+            with col_r1:
+                # Graphviz Flowchart
+                visa_map = graphviz.Digraph()
+                visa_map.attr(rankdir='LR')
+                visa_map.attr('node', shape='box', style='rounded,filled', fontname="sans-serif")
+                
+                # Nodes
+                visa_map.node('D2', 'D-2\n(Student)', fillcolor='#E3F2FD', color='#1565C0')
+                visa_map.node('D10', 'D-10\n(Job Seeker)', fillcolor='#FFF9C4', color='#FBC02D')
+                visa_map.node('E7', 'E-7\n(Professional)', fillcolor='#C8E6C9', color='#2E7D32')
+                visa_map.node('F2', 'F-2-7\n(Resident)', fillcolor='#FFCCBC', color='#D84315', shape='doubleoctagon')
+                
+                # Edges with Labels
+                visa_map.edge('D2', 'D10', label='Graduation')
+                visa_map.edge('D10', 'E7', label='Job Contract\n(Matching Major)')
+                visa_map.edge('E7', 'F2', label='80 Points\n(After 1-3 yrs)')
+                visa_map.edge('D2', 'F2', label='Direct Apply\n(Master + Job)', style='dashed')
+                
+                st.graphviz_chart(visa_map)
+                
+            with col_r2:
+                st.markdown("#### Current Stage")
+                st.markdown("""
+                <div class="metric-box" style="border-left:5px solid #1565C0;">
+                    <b>STEP 1: D-2</b><br>
+                    <span style="font-size:12px;">Maintain GPA & Learn Korean</span>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("⬇️ Next")
+                st.markdown("""
+                <div class="metric-box" style="opacity:0.6;">
+                    <b>STEP 2: D-10</b><br>
+                    <span style="font-size:12px;">Need 60pts to apply</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # 4. Visa-Sponsored Job Board
         elif menu == "🏢 Visa-Sponsored Jobs":
             st.title("🏢 Visa-Sponsored Jobs")
-            st.caption("Curated job openings that actively support E-7 Visa sponsorship.")
+            st.caption("Positions that actively support **E-7 Visa Sponsorship**.")
             
-            # 필터
-            col_f1, col_f2, col_f3 = st.columns(3)
-            with col_f1:
-                st.selectbox("Industry", ["IT / Tech", "Global Sales", "Marketing", "Engineering"])
-            with col_f2:
-                st.selectbox("Korean Level", ["None", "Basic", "Business", "Native"])
-            with col_f3:
-                st.checkbox("Visa Sponsorship Guaranteed", value=True)
+            # Smart Filter
+            c_f1, c_f2, c_f3 = st.columns(3)
+            with c_f1:
+                st.selectbox("Job Function", ["All", "Sales", "IT/Dev", "Marketing"])
+            with c_f2:
+                st.selectbox("Visa Type", ["E-7 Sponsored", "F-Visa Only"])
+            with c_f3:
+                st.checkbox("Korean Not Required", value=True)
             
-            st.divider()
+            st.write("")
             
-            # Job Card 1
+            # Job Listing 1
             st.markdown(f"""
             <div class="feed-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="tag" style="background-color:#FFF3E0; color:#EF6C00;">E-7 Guaranteed</span>
-                    <span style="font-size:12px; color:#999;">D-3</span>
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">✅ E-7 Sponsorship</span>
+                    <span style="font-size:12px; color:#888;">D-5</span>
                 </div>
-                <h3 style="margin: 10px 0;">Global Sales Manager (Japanese/English)</h3>
-                <p style="font-weight:600; color:#333;">LINE Plus Corp.</p>
-                <p style="color:#546E7A; font-size:14px;">
-                • Targeting the Japanese market<br>
-                • <b>Korean Level:</b> Basic communication is enough<br>
-                • <b>Visa Support:</b> Full sponsorship for E-7
-                </p>
-                <button style="background-color:#4A90E2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;">Apply Now</button>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Job Card 2
-            st.markdown(f"""
-            <div class="feed-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">F-Visa Preferred</span>
-                    <span style="font-size:12px; color:#999;">D-1</span>
+                <h3 style="margin:5px 0;">Overseas Sales Manager (Vietnam)</h3>
+                <p style="font-weight:bold; color:#555;">Samsung C&T</p>
+                <div style="font-size:13px; color:#546E7A; margin-top:5px;">
+                    <span>📍 Seoul, Gangnam</span> | <span>💰 45M+ KRW</span>
                 </div>
-                <h3 style="margin: 10px 0;">Frontend Developer (React)</h3>
-                <p style="font-weight:600; color:#333;">Moloco (Unicorn Startup)</p>
-                <p style="color:#546E7A; font-size:14px;">
-                • Global team environment (English based)<br>
-                • <b>Korean Level:</b> Not Required<br>
+                <hr style="margin:10px 0; border:0; border-top:1px solid #EEE;">
+                <p style="font-size:13px; color:#333;">
+                <b>Requirements:</b><br>
+                • Native Vietnamese speaker<br>
+                • TOPIK Level 4 or higher<br>
+                • Major in Business/Economics preferred
                 </p>
-                <button style="background-color:#4A90E2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;">Apply Now</button>
+                <button style="width:100%; background-color:#4A90E2; color:white; border:none; padding:8px; border-radius:6px;">Apply Now</button>
             </div>
             """, unsafe_allow_html=True)
 
-        # 4. AI Resume Builder - [NEW]
+            # Job Listing 2
+            st.markdown(f"""
+            <div class="feed-card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="tag" style="background-color:#FFF3E0; color:#EF6C00;">⚡ Urgent Hiring</span>
+                    <span style="font-size:12px; color:#888;">D-1</span>
+                </div>
+                <h3 style="margin:5px 0;">Content Marketer (English)</h3>
+                <p style="font-weight:bold; color:#555;">HyperConnect</p>
+                <div style="font-size:13px; color:#546E7A; margin-top:5px;">
+                    <span>📍 Seoul, Gangnam</span> | <span>💰 Negotiable</span>
+                </div>
+                <hr style="margin:10px 0; border:0; border-top:1px solid #EEE;">
+                <p style="font-size:13px; color:#333;">
+                <b>Requirements:</b><br>
+                • Native English speaker<br>
+                • Experience in Social Media Marketing<br>
+                • F-series Visa holders preferred (E-7 possible for high skilled)
+                </p>
+                <button style="width:100%; background-color:#4A90E2; color:white; border:none; padding:8px; border-radius:6px;">Apply Now</button>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # 5. AI Resume Builder (Eng to Kor) - (Existing Logic Kept)
         elif menu == "📝 AI Resume Builder (Eng to Kor)":
             st.title("📝 AI Resume Converter")
             st.write("Convert your English experience into a **Perfect Korean Resume**.")
@@ -896,7 +1027,7 @@ elif st.session_state.step == 4:
                     st.info("Waiting for input...")
                     st.text_area("Korean Result", height=300, disabled=True)
 
-        # 5. Settings
+        # 6. Settings
         elif menu == "⚙️ Settings":
              st.title("Settings")
              if st.button("Log out"):
