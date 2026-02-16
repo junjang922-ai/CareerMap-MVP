@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.3", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.4", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -189,7 +189,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (수정: 로그인 시 바로 Step 4)
+# STEP 1: 로그인 및 회원가입 (유지)
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -211,11 +211,11 @@ if st.session_state.step == 1:
                 st.write("")
                 if st.button("시작하기"):
                     if login_id:
-                        # [수정] 로그인 성공 시 기존 회원 데이터 로드 시뮬레이션 -> 바로 Step 4로 이동
+                        # 로그인 성공 시 기존 회원 데이터 로드 시뮬레이션 -> 바로 Step 4로 이동
                         st.session_state.user_info = {
                             'id': login_id,
                             'name': login_id + "님",
-                            'track': 'Senior', # 기존 회원 가정
+                            'track': 'Senior', # 기본값 (테스트용)
                             'univ': '연세대학교',
                             'major': '경영학과',
                             'target_job': 'PM/서비스기획',
@@ -228,7 +228,7 @@ if st.session_state.step == 1:
                     else:
                         st.warning("아이디를 입력해주세요.")
 
-        # [Tab 2] 회원가입 (유지: 가입 후 Step 2로 이동)
+        # [Tab 2] 회원가입
         with tab2:
             st.markdown("#### 환영합니다! 👋\n**당신의 취업을 진심으로 응원해요**")
             st.write("")
@@ -254,8 +254,8 @@ if st.session_state.step == 1:
                 with c_p2:
                     st.markdown('<div class="small-btn">', unsafe_allow_html=True)
                     if st.button("인증"):
-                         st.session_state.signup_status['auth_sent'] = True
-                         st.toast("인증번호가 발송되었습니다. (1234)", icon="📩")
+                          st.session_state.signup_status['auth_sent'] = True
+                          st.toast("인증번호가 발송되었습니다. (1234)", icon="📩")
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 if st.session_state.signup_status['auth_sent']:
@@ -697,53 +697,221 @@ elif st.session_state.step == 3.5:
             st.rerun()
 
 # ==========================================
-# STEP 4: 메인 대시보드 (유지)
+# STEP 4: 메인 대시보드 (Global Track 고도화)
 # ==========================================
 elif st.session_state.step == 4:
     
     user_name = st.session_state.user_info.get('name', 'User')
-    target_job = st.session_state.user_info.get('target_job', '직무')
+    target_job = st.session_state.user_info.get('target_job', 'Business')
     test_key = st.session_state.user_info.get('test_keyword', '미입력')
     track = st.session_state.user_info.get('track', 'Type')
     
     # [사이드바]
     with st.sidebar:
         st.title("🧭 Career Map")
-        st.write(f"**{user_name}**님")
-        st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
+        st.write(f"Hello, **{user_name}**!")
         
-        # 뱃지 스타일 (Clubmate Blue)
+        # 트랙에 따른 메뉴 분기
         if track == 'Global':
-            st.markdown(f"<span class='tag'>🛂 Visa: {st.session_state.user_info.get('visa_type', 'D-2')}</span>", unsafe_allow_html=True)
+            st.caption(f"Yonsei Univ. | {track} Track")
+            st.info(f"🛂 **Visa Status**\nCurrent: {st.session_state.user_info.get('visa_type', 'D-2')}")
+            
+            st.divider()
+            
+            # Global 전용 메뉴
+            menu = st.radio("MENU", [
+                "🏠 Dashboard", 
+                "🛂 Visa Calculator (F-2-7)", 
+                "🏢 Visa-Sponsored Jobs", 
+                "📝 AI Resume Builder (Eng to Kor)",
+                "⚙️ Settings"
+            ])
+            
         else:
+            # 기존 내국인 메뉴 (유지)
+            st.caption(f"{st.session_state.user_info.get('univ')} | {track}")
+            
+            # 뱃지 스타일 (Clubmate Blue)
             if "분석가" in test_key or "전략가" in test_key:
                 st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             elif "소통가" in test_key or "개척자" in test_key:
                 st.markdown(f"<span class='tag'>🧬 {test_key}</span>", unsafe_allow_html=True)
             
-        st.divider()
-        menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "📂 내 서류함", "⚙️ 설정"])
-        
-        st.divider()
-        st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
+            st.divider()
+            menu = st.radio("MENU", ["🏠 홈 (Feed)", "🗺️ 나의 로드맵/전략", "📝 업무 다이어리", "✍️ AI 자소서 작성", "📂 내 서류함", "⚙️ 설정"])
+            st.divider()
+            st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
-    # [1] 홈 (Feed)
-    if menu == "🏠 홈 (Feed)":
-        st.header(f"🔥 {target_job} 분야 트렌드")
+    # ----------------------------------------------------------------
+    # [Branch 1] Global Track Features
+    # ----------------------------------------------------------------
+    if track == 'Global':
         
-        # [Branch] Global Feed
-        if track == 'Global':
-             st.markdown(f"""
+        # 1. Dashboard
+        if menu == "🏠 Dashboard":
+            st.title(f"Hello, {user_name}! 👋")
+            st.markdown("Here is your specialized career & visa report.")
+            
+            # (1) Visa Probability Banner
+            st.markdown("""
             <div class="banner-gradient">
-                <h2 style='color:white; margin:0;'>🌏 Global Talent Analysis</h2>
-                <p style='margin:5px 0 0 0;'>Visa Probability: <b>85%</b> (Safe)<br>
-                Based on your TOPIK {st.session_state.user_info.get('topik', 'Level 4')} and Major.</p>
+                <h2 style='color:white; margin:0;'>🌏 Your E-7 Visa Probability: 85%</h2>
+                <p style='margin:5px 0 0 0;'>Great! You are in the <b>'Safe Zone'</b> for graduation employment.</p>
+                <p style='font-size:13px; opacity:0.8;'>*Based on Major, TOPIK, and University Ranking.</p>
             </div>
             """, unsafe_allow_html=True)
-             st.info("📢 **Visa Alert:** D-10 visa regulations have been updated. (Check Now)")
-             
-        # [Branch] Korean Feed
-        else:
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                st.subheader("🔥 Hot Jobs for Foreigners")
+                st.markdown(f"""
+                <div class="feed-card">
+                    <span class="tag" style="background-color:#E3F2FD; color:#1565C0;">Visa Sponsored</span>
+                    <h4 style="margin: 10px 0;">[Kakao Mobility] Global Strategy Intern</h4>
+                    <p style="color:#546E7A; font-size:14px; margin:0;">
+                    ✅ <b>Fluent English</b> required<br>
+                    ✅ Prefer <b>{target_job}</b> background
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.subheader("📢 Weekly Visa Update")
+                st.markdown("""
+                <div class="metric-box">
+                    <p><b>🆕 F-2-R Visa Pilot Expanded</b></p>
+                    <p style="font-size:13px; color:#555;">The Ministry of Justice announced the expansion of the Regional Specialized Residency Visa...</p>
+                    <hr style="margin:10px 0;">
+                    <a href="#" style="text-decoration:none; color:#4A90E2; font-size:13px;">Read more ></a>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # 2. Visa Calculator (F-2-7 Points) - [NEW]
+        elif menu == "🛂 Visa Calculator (F-2-7)":
+            st.title("🧮 F-2-7 Visa Point Calculator")
+            st.caption("The F-2-7 visa (Points-Based Resident) allows more freedom in changing jobs. Check your score!")
+            
+            with st.container(border=True):
+                col_v1, col_v2 = st.columns(2)
+                with col_v1:
+                    age = st.selectbox("Age", ["20-24 (23pts)", "25-29 (25pts)", "30-34 (23pts)"], index=1)
+                    edu = st.selectbox("Education", ["Bachelor (10pts)", "Bachelor (STEM) (10+2pts)", "Master (15pts)", "Ph.D (20pts)"], index=0)
+                with col_v2:
+                    topik_score = st.selectbox("Korean Ability (TOPIK)", ["Level 1 (0pts)", "Level 3 (10pts)", "Level 4 (15pts)", "Level 5+ (20pts)"], index=2)
+                    income = st.selectbox("Expected Yearly Income", ["None (Student)", "Over 30M KRW (10pts)", "Over 40M KRW (20pts)"], index=0)
+                
+                # 가상의 점수 계산 로직
+                current_score = 65  # Dummy base score
+                
+                st.write("")
+                st.progress(current_score / 100)
+                st.metric(label="Your Estimated Score", value=f"{current_score} / 80 Points", delta="-15 Points needed")
+                
+                if current_score < 80:
+                    st.error("🚨 You need 15 more points to apply for F-2-7.")
+                    st.markdown("""
+                    **💡 How to boost your score?**
+                    - 📚 **KIIP Program:** Complete Level 5 (+10 pts)
+                    - 💼 **Income:** Secure a job with 30M+ KRW (+10 pts)
+                    """)
+                else:
+                    st.success("🎉 You are eligible to apply!")
+
+        # 3. Visa-Sponsored Job Board - [NEW]
+        elif menu == "🏢 Visa-Sponsored Jobs":
+            st.title("🏢 Visa-Sponsored Jobs")
+            st.caption("Curated job openings that actively support E-7 Visa sponsorship.")
+            
+            # 필터
+            col_f1, col_f2, col_f3 = st.columns(3)
+            with col_f1:
+                st.selectbox("Industry", ["IT / Tech", "Global Sales", "Marketing", "Engineering"])
+            with col_f2:
+                st.selectbox("Korean Level", ["None", "Basic", "Business", "Native"])
+            with col_f3:
+                st.checkbox("Visa Sponsorship Guaranteed", value=True)
+            
+            st.divider()
+            
+            # Job Card 1
+            st.markdown(f"""
+            <div class="feed-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="tag" style="background-color:#FFF3E0; color:#EF6C00;">E-7 Guaranteed</span>
+                    <span style="font-size:12px; color:#999;">D-3</span>
+                </div>
+                <h3 style="margin: 10px 0;">Global Sales Manager (Japanese/English)</h3>
+                <p style="font-weight:600; color:#333;">LINE Plus Corp.</p>
+                <p style="color:#546E7A; font-size:14px;">
+                • Targeting the Japanese market<br>
+                • <b>Korean Level:</b> Basic communication is enough<br>
+                • <b>Visa Support:</b> Full sponsorship for E-7
+                </p>
+                <button style="background-color:#4A90E2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;">Apply Now</button>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Job Card 2
+            st.markdown(f"""
+            <div class="feed-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="tag" style="background-color:#E8F5E9; color:#2E7D32;">F-Visa Preferred</span>
+                    <span style="font-size:12px; color:#999;">D-1</span>
+                </div>
+                <h3 style="margin: 10px 0;">Frontend Developer (React)</h3>
+                <p style="font-weight:600; color:#333;">Moloco (Unicorn Startup)</p>
+                <p style="color:#546E7A; font-size:14px;">
+                • Global team environment (English based)<br>
+                • <b>Korean Level:</b> Not Required<br>
+                </p>
+                <button style="background-color:#4A90E2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;">Apply Now</button>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # 4. AI Resume Builder - [NEW]
+        elif menu == "📝 AI Resume Builder (Eng to Kor)":
+            st.title("📝 AI Resume Converter")
+            st.write("Convert your English experience into a **Perfect Korean Resume**.")
+            
+            col_r1, col_r2 = st.columns(2)
+            
+            with col_r1:
+                st.subheader("🇺🇸 Input (English)")
+                eng_input = st.text_area("Paste your bullet points here:", height=300, 
+                                         placeholder="- Managed social media accounts with 10k followers\n- Analyzed marketing data using Google Analytics")
+            
+            with col_r2:
+                st.subheader("🇰🇷 Output (Korean)")
+                if eng_input:
+                    if st.button("🔄 Translate & Polish"):
+                        with st.spinner("AI is professionalizing your resume..."):
+                            time.sleep(2)
+                            kor_output = """
+- **소셜 미디어 채널 운영 및 성과 관리**: 팔로워 10,000명 규모의 계정을 전담 운영하며 브랜드 인지도 제고
+- **데이터 기반 마케팅 성과 분석**: Google Analytics를 활용하여 유입 경로 및 전환율 분석, 마케팅 효율 15% 개선
+                            """
+                            st.text_area("Korean Result", value=kor_output, height=300)
+                            st.success("Done! Copy this to your Korean resume.")
+                else:
+                    st.info("Waiting for input...")
+                    st.text_area("Korean Result", height=300, disabled=True)
+
+        # 5. Settings
+        elif menu == "⚙️ Settings":
+             st.title("Settings")
+             if st.button("Log out"):
+                 st.session_state.step = 1
+                 st.rerun()
+
+    # ----------------------------------------------------------------
+    # [Branch 2] Korean Track Features (기존 코드 유지)
+    # ----------------------------------------------------------------
+    else:
+        
+        # [1] 홈 (Feed)
+        if menu == "🏠 홈 (Feed)":
+            st.header(f"🔥 {target_job} 분야 트렌드")
+            
             recomm_text = "회원님의 스펙"
             if "분석가" in test_key or "전략가" in test_key:
                 recomm_text = f"회원님의 **{test_key} 성향**과 **스펙**"
@@ -807,194 +975,162 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-    # [2] 로드맵/전략
-    elif menu == "🗺️ 나의 로드맵/전략":
-        
-        # --- [Option 1] Global Track ---
-        if track == 'Global':
-            st.title("🌏 Visa & Career Roadmap")
-            st.caption("Strategic roadmap for E-7 Visa acquisition.")
+        # [2] 로드맵/전략
+        elif menu == "🗺️ 나의 로드맵/전략":
             
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                graph = graphviz.Digraph()
-                graph.attr(rankdir='LR')
-                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#1565C0', fontname="sans-serif")
+            # --- [Option 1] Korean Junior ---
+            if track == 'Junior':
+                st.title(f"🗺️ {target_job} 커리어 로드맵")
+                st.caption("선배들의 데이터를 기반으로 생성된 최적의 성장 경로입니다.")
                 
-                graph.node('D2', 'D-2 (Student)', fillcolor='#FFF9C4')
-                graph.node('TOPIK', 'TOPIK Level 5', fillcolor='#FFCCBC')
-                graph.node('Intern', 'Internship', fillcolor='#E3F2FD')
-                graph.node('Grad', 'Graduation', fillcolor='#C8E6C9')
-                graph.node('D10', 'D-10 (Job Seeker)', fillcolor='#E1BEE7')
-                graph.node('E7', 'E-7 (Professional)', fillcolor='#FFD54F', shape='doubleoctagon')
-                
-                graph.edge('D2', 'TOPIK')
-                graph.edge('TOPIK', 'Intern')
-                graph.edge('Intern', 'Grad')
-                graph.edge('Grad', 'D10')
-                graph.edge('D10', 'E7')
-                
-                st.graphviz_chart(graph)
-            
-            with col2:
-                st.info("💡 **Visa Analysis**")
-                st.write("Your probability of getting **E-7 Visa** is **85%**.")
-                st.write("- Strength: Major Match ✅")
-                st.write("- Weakness: TOPIK Score (Need Level 5)")
-                
-        # --- [Option 2] Korean Junior ---
-        elif track == 'Junior':
-            st.title(f"🗺️ {target_job} 커리어 로드맵")
-            st.caption("선배들의 데이터를 기반으로 생성된 최적의 성장 경로입니다.")
-            
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                graph = graphviz.Digraph()
-                graph.attr(rankdir='TB') 
-                graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#1565C0', fontname="sans-serif")
-                
-                graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
-                graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
-                graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
-                graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
-                graph.node('Cert', '💳 직무 자격증', fillcolor='#FFCCBC')
-                graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
-                graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
-
-                if "분석가" in test_key:
-                    graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
-                elif "소통가" in test_key:
-                    graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
-
-                graph.edge('Start', 'GPA')
-                graph.edge('Start', 'Eng')
-                graph.edge('GPA', 'Club')
-                graph.edge('Eng', 'Club')
-                graph.edge('Club', 'Cert')
-                graph.edge('Cert', 'Intern')
-                graph.edge('Intern', 'Job')
-                
-                st.graphviz_chart(graph)
-            
-            with col2:
-                st.markdown("""
-                <div class="feed-card">
-                    <h4>📊 선배들의 경로 분석</h4>
-                    <p style="font-size:14px;"><b>{0}</b> 합격자의 <b>65%</b>는<br>
-                    2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
-                </div>
-                """.format(target_job), unsafe_allow_html=True)
-                st.write("🚀 **추천 활동**")
-                st.checkbox("SQLD 자격증 따기")
-
-        # --- [Option 3] Korean Senior ---
-        else: 
-            st.title("📊 합격 전략 리포트")
-            st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
-            
-            st.subheader("1. 나의 합격 경쟁력")
-            col_a, col_b = st.columns([1, 2])
-            with col_a:
-                st.metric(label="예상 합격 확률", value="72%", delta="안정권 진입 중")
-            with col_b:
-                st.progress(72)
-                st.caption("합격 안정권(85%)까지 13% 남았습니다.")
-
-            st.divider()
-            st.subheader("2. 합격자 vs 나 (Gap 분석)")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown("##### ✅ 내가 가진 강점")
-                st.success("• **인턴 경험 (6개월)**: 경쟁자 평균(3개월)보다 높음")
-            with col2:
-                st.markdown("##### 🚨 보완이 필요한 점")
-                st.error("• **비즈니스 영어**: OPIc IH 이상이 필요함 (현재 IM2)")
-
-            st.divider()
-            st.subheader("3. Next Step Recommendation")
-            st.markdown(f"""
-            <div style="background-color:#E8F5E9; padding:15px; border-radius:10px; color:#2E7D32;">
-                <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
-                <ul>
-                    <li><b>[1개월 내]</b> 오픽 IH 취득하기</li>
-                    <li><b>[2개월 내]</b> 포트폴리오에 '데이터 기반 성과' 챕터 추가</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # [3] 업무 다이어리 (Sunny Yellow 포인트)
-    elif menu == "📝 업무 다이어리":
-        st.title("📝 인턴 업무 다이어리 (Career Log)")
-        st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요.")
-        
-        st.markdown(f"""
-        <div style="background-color:#FFFDE7; padding:20px; border-radius:16px; margin-bottom:20px; text-align:center; border:1px solid #FFF59D;">
-            <h3 style="color:#FBC02D; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        today_questions = ["오늘 사수님이나 동료에게 들은 피드백이 있나요?", "오늘 업무 중 가장 뿌듯했던 순간은 언제인가요?"]
-        if 'today_q' not in st.session_state:
-            st.session_state.today_q = random.choice(today_questions)
-            
-        col1, col2 = st.columns([1.5, 1])
-        with col1:
-            st.markdown(f"""<div class="question-box">Q. {st.session_state.today_q}</div>""", unsafe_allow_html=True)
-            diary_input = st.text_area("답변을 입력하세요", height=100)
-            
-            if st.button("오늘의 기록 저장하기 ✨"):
-                if diary_input:
-                    new_log = {"date": datetime.date.today().strftime("%Y-%m-%d"), "q": st.session_state.today_q, "a": diary_input}
-                    st.session_state.diary_logs.insert(0, new_log)
-                    st.session_state.diary_streak += 1
-                    st.success("저장되었습니다!")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.warning("내용을 입력해주세요.")
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    graph = graphviz.Digraph()
+                    graph.attr(rankdir='TB') 
+                    graph.attr('node', shape='box', style='rounded,filled', fillcolor='#E3F2FD', color='#1565C0', fontname="sans-serif")
                     
-        with col2:
-            st.markdown("### 📅 지난 기록")
-            for log in st.session_state.diary_logs:
+                    graph.node('Start', '🏁 입학 (1학년)', fillcolor='#FFF9C4')
+                    graph.node('GPA', '📚 학점 관리 (3.8+)', fillcolor='#C8E6C9')
+                    graph.node('Eng', '🗣️ 어학 기초 (토익)', fillcolor='#E3F2FD')
+                    graph.node('Club', '🤝 교내 학회/동아리', fillcolor='#E3F2FD')
+                    graph.node('Cert', '💳 직무 자격증', fillcolor='#FFCCBC')
+                    graph.node('Intern', '💼 인턴십 (3학년)', fillcolor='#FFAB91')
+                    graph.node('Job', f'🏆 {target_job} 취업', fillcolor='#FFD54F', shape='doubleoctagon')
+
+                    if "분석가" in test_key:
+                        graph.node('Cert', '💳 데이터 자격증 (필수)', fillcolor='#FF8A65', penwidth='3') 
+                    elif "소통가" in test_key:
+                        graph.node('Club', '🤝 연합 동아리 (강추)', fillcolor='#FF8A65', penwidth='3')
+
+                    graph.edge('Start', 'GPA')
+                    graph.edge('Start', 'Eng')
+                    graph.edge('GPA', 'Club')
+                    graph.edge('Eng', 'Club')
+                    graph.edge('Club', 'Cert')
+                    graph.edge('Cert', 'Intern')
+                    graph.edge('Intern', 'Job')
+                    
+                    st.graphviz_chart(graph)
+                
+                with col2:
+                    st.markdown("""
+                    <div class="feed-card">
+                        <h4>📊 선배들의 경로 분석</h4>
+                        <p style="font-size:14px;"><b>{0}</b> 합격자의 <b>65%</b>는<br>
+                        2학년 때 <b>데이터 분석 학회</b>를 경험했습니다.</p>
+                    </div>
+                    """.format(target_job), unsafe_allow_html=True)
+                    st.write("🚀 **추천 활동**")
+                    st.checkbox("SQLD 자격증 따기")
+
+            # --- [Option 2] Korean Senior ---
+            else: 
+                st.title("📊 합격 전략 리포트")
+                st.info(f"{target_job} 직무 합격자 데이터와 내 스펙을 비교 분석합니다.")
+                
+                st.subheader("1. 나의 합격 경쟁력")
+                col_a, col_b = st.columns([1, 2])
+                with col_a:
+                    st.metric(label="예상 합격 확률", value="72%", delta="안정권 진입 중")
+                with col_b:
+                    st.progress(72)
+                    st.caption("합격 안정권(85%)까지 13% 남았습니다.")
+
+                st.divider()
+                st.subheader("2. 합격자 vs 나 (Gap 분석)")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("##### ✅ 내가 가진 강점")
+                    st.success("• **인턴 경험 (6개월)**: 경쟁자 평균(3개월)보다 높음")
+                with col2:
+                    st.markdown("##### 🚨 보완이 필요한 점")
+                    st.error("• **비즈니스 영어**: OPIc IH 이상이 필요함 (현재 IM2)")
+
+                st.divider()
+                st.subheader("3. Next Step Recommendation")
                 st.markdown(f"""
-                <div class="diary-card">
-                    <span style="font-size:12px; color:#9E9E9E;">{log['date']}</span><br>
-                    <b>Q. {log['q']}</b><br>
-                    <span style="color:#5D4037;">{log['a']}</span>
+                <div style="background-color:#E8F5E9; padding:15px; border-radius:10px; color:#2E7D32;">
+                    <h4>🚀 {target_job} 합격을 위한 최단 경로</h4>
+                    <ul>
+                        <li><b>[1개월 내]</b> 오픽 IH 취득하기</li>
+                        <li><b>[2개월 내]</b> 포트폴리오에 '데이터 기반 성과' 챕터 추가</li>
+                    </ul>
                 </div>
                 """, unsafe_allow_html=True)
 
-    # [4] AI 자소서 생성
-    elif menu == "✍️ AI 자소서 작성":
-        st.title("✍️ AI 자기소개서 생성")
-        st.caption("지금까지 쌓아온 '다이어리(경험)', '역량검사(성향)', '스펙'을 모두 결합해 최적의 초안을 작성합니다.")
-        
-        st.markdown("##### 📡 사용되는 내 데이터 자산 (Assets)")
-        st.markdown(f"""
-        <div class="generator-box">
-            <span class="source-badge">✅ 다이어리 기록 {len(st.session_state.diary_logs)}건</span>
-            <span class="source-badge">✅ 성향 키워드: {test_key}</span>
-            <span class="source-badge">✅ 목표 직무: {target_job}</span>
-            <span class="source-badge">✅ 업로드 서류: 이력서_v1.pdf</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            apply_company = st.text_input("지원 기업명", placeholder="예: 삼성전자, 카카오")
-        with col2:
-            question_type = st.selectbox("질문 유형", ["지원동기", "성격의 장단점", "직무상 강점 (문제해결)", "입사 후 포부"])
+        # [3] 업무 다이어리 (Sunny Yellow 포인트)
+        elif menu == "📝 업무 다이어리":
+            st.title("📝 인턴 업무 다이어리 (Career Log)")
+            st.caption("매일 3분, 질문에 답하며 나만의 업무 자산을 쌓아보세요.")
             
-        if st.button("✨ AI 초안 생성하기"):
-            if apply_company:
-                with st.status("AI가 데이터를 분석하고 있습니다...", expanded=True) as status:
-                    st.write("📂 업무 다이어리에서 관련 에피소드 추출 중...")
-                    time.sleep(1)
-                    st.write(f"🧬 '{test_key}' 성향 키워드와 매칭 중...")
-                    time.sleep(1)
-                    status.update(label="생성 완료!", state="complete", expanded=False)
+            st.markdown(f"""
+            <div style="background-color:#FFFDE7; padding:20px; border-radius:16px; margin-bottom:20px; text-align:center; border:1px solid #FFF59D;">
+                <h3 style="color:#FBC02D; margin:0;">🔥 {st.session_state.diary_streak}일째 기록 중!</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            today_questions = ["오늘 사수님이나 동료에게 들은 피드백이 있나요?", "오늘 업무 중 가장 뿌듯했던 순간은 언제인가요?"]
+            if 'today_q' not in st.session_state:
+                st.session_state.today_q = random.choice(today_questions)
                 
-                generated_content = f"""
+            col1, col2 = st.columns([1.5, 1])
+            with col1:
+                st.markdown(f"""<div class="question-box">Q. {st.session_state.today_q}</div>""", unsafe_allow_html=True)
+                diary_input = st.text_area("답변을 입력하세요", height=100)
+                
+                if st.button("오늘의 기록 저장하기 ✨"):
+                    if diary_input:
+                        new_log = {"date": datetime.date.today().strftime("%Y-%m-%d"), "q": st.session_state.today_q, "a": diary_input}
+                        st.session_state.diary_logs.insert(0, new_log)
+                        st.session_state.diary_streak += 1
+                        st.success("저장되었습니다!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.warning("내용을 입력해주세요.")
+                        
+            with col2:
+                st.markdown("### 📅 지난 기록")
+                for log in st.session_state.diary_logs:
+                    st.markdown(f"""
+                    <div class="diary-card">
+                        <span style="font-size:12px; color:#9E9E9E;">{log['date']}</span><br>
+                        <b>Q. {log['q']}</b><br>
+                        <span style="color:#5D4037;">{log['a']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        # [4] AI 자소서 생성
+        elif menu == "✍️ AI 자소서 작성":
+            st.title("✍️ AI 자기소개서 생성")
+            st.caption("지금까지 쌓아온 '다이어리(경험)', '역량검사(성향)', '스펙'을 모두 결합해 최적의 초안을 작성합니다.")
+            
+            st.markdown("##### 📡 사용되는 내 데이터 자산 (Assets)")
+            st.markdown(f"""
+            <div class="generator-box">
+                <span class="source-badge">✅ 다이어리 기록 {len(st.session_state.diary_logs)}건</span>
+                <span class="source-badge">✅ 성향 키워드: {test_key}</span>
+                <span class="source-badge">✅ 목표 직무: {target_job}</span>
+                <span class="source-badge">✅ 업로드 서류: 이력서_v1.pdf</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                apply_company = st.text_input("지원 기업명", placeholder="예: 삼성전자, 카카오")
+            with col2:
+                question_type = st.selectbox("질문 유형", ["지원동기", "성격의 장단점", "직무상 강점 (문제해결)", "입사 후 포부"])
+                
+            if st.button("✨ AI 초안 생성하기"):
+                if apply_company:
+                    with st.status("AI가 데이터를 분석하고 있습니다...", expanded=True) as status:
+                        st.write("📂 업무 다이어리에서 관련 에피소드 추출 중...")
+                        time.sleep(1)
+                        st.write(f"🧬 '{test_key}' 성향 키워드와 매칭 중...")
+                        time.sleep(1)
+                        status.update(label="생성 완료!", state="complete", expanded=False)
+                    
+                    generated_content = f"""
 [소제목: {test_key}의 치밀함으로 {target_job} 업무의 효율을 높이겠습니다]
 
 저는 {apply_company}의 {target_job} 직무에서 저의 강점인 '{test_key}' 기질을 발휘하고자 지원했습니다. 평소 업무 다이어리를 통해 매일의 성과를 기록하며 부족한 점을 보완해왔습니다.
@@ -1002,22 +1138,22 @@ elif st.session_state.step == 4:
 특히, 인턴 기간 동안 "{st.session_state.diary_logs[0]['a']}"와 같은 경험을 통해 실무 역량을 길렀습니다.
 
 이러한 저의 '{test_key}' 성향과 꾸준한 기록 습관은 {apply_company}에서 데이터를 분석하고 업무 프로세스를 최적화하는 데 크게 기여할 것입니다.
-                """
-                st.subheader("📄 생성된 초안")
-                st.text_area("복사해서 수정해 보세요!", value=generated_content, height=300)
-            else:
-                st.warning("지원하실 기업명을 입력해주세요.")
+                    """
+                    st.subheader("📄 생성된 초안")
+                    st.text_area("복사해서 수정해 보세요!", value=generated_content, height=300)
+                else:
+                    st.warning("지원하실 기업명을 입력해주세요.")
 
-    elif menu == "📂 내 서류함":
-        st.title("📂 내 서류함")
-        st.write("업로드된 파일 목록:")
-        st.markdown("- 📄 `AI_역량검사_결과표.pdf`")
-        st.markdown("- 📄 `이력서_v1.pdf`")
-        st.button("파일 추가하기")
+        elif menu == "📂 내 서류함":
+            st.title("📂 내 서류함")
+            st.write("업로드된 파일 목록:")
+            st.markdown("- 📄 `AI_역량검사_결과표.pdf`")
+            st.markdown("- 📄 `이력서_v1.pdf`")
+            st.button("파일 추가하기")
 
-    elif menu == "⚙️ 설정":
-        st.title("설정")
-        st.write(f"ID: {st.session_state.user_info.get('id', '-')}")
-        if st.button("로그아웃"):
-            st.session_state.step = 1
-            st.rerun()
+        elif menu == "⚙️ 설정":
+            st.title("설정")
+            st.write(f"ID: {st.session_state.user_info.get('id', '-')}")
+            if st.button("로그아웃"):
+                st.session_state.step = 1
+                st.rerun()
