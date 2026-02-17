@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.9 (Alumni Upgrade)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v8.0 (Alumni Enhanced)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -745,7 +745,7 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features
+    # [Branch 1] Global Track Features (Wayble Benchmarked)
     # ----------------------------------------------------------------
     if track == 'Global':
         
@@ -820,7 +820,7 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # [NEW] Alumni Career Guide (Deep-Dive & Interactive Version)
+        # [NEW] Alumni Career Guide (Upgraded Data Path & Winning Path)
         elif menu == "🎓 Alumni Career Guide":
             st.title("🎓 Alumni Career Guide")
             st.caption(f"Analyze data from **1,240 successful international alumni** to build your winning strategy.")
@@ -846,50 +846,71 @@ elif st.session_state.step == 4:
 
             tab_insight, tab_persona, tab_mentoring = st.tabs(["📊 Data Insights", "👤 Success Stories (Role Model)", "☕ Request Coffee Chat"])
 
-            # [TAB 1] 데이터 인사이트
+            # [TAB 1] 데이터 인사이트 (Deep-Dive)
             with tab_insight:
-                col_i1, col_i2 = st.columns([1.5, 1])
-                
+                # 1. Detailed Spec Analysis
+                st.markdown("### 📊 Deep Dive: Specs of Successful Alumni")
+                col_i1, col_i2, col_i3 = st.columns(3)
                 with col_i1:
-                    st.subheader("🏢 Where did they go?")
-                    df_company = pd.DataFrame({
-                        'Company': ['Samsung Electronics', 'LG CNS', 'Hyundai Motor', 'SK Hynix', 'Startups', 'Others'],
-                        'Count': [45, 32, 20, 15, 12, 18]
-                    })
-                    st.bar_chart(df_company.set_index('Company'), color="#4A90E2")
-                    
+                    st.metric("Avg. TOPIK", "Level 5.8", "Higher than applicants (Lv 4.5)")
                 with col_i2:
-                    st.subheader("🔑 Key Spec Analysis")
-                    st.markdown("""
-                    <div class="metric-box">
-                        <p style="margin-bottom:5px;"><b>🗣️ Average TOPIK Score</b></p>
-                        <h2 style="margin:0; color:#2E7D32;">Level 5.8</h2>
-                        <p style="font-size:12px; color:#666;">(Sales roles require Level 6)</p>
-                        <hr>
-                        <p style="margin-bottom:5px;"><b>💼 Avg. Internship Count</b></p>
-                        <h2 style="margin:0; color:#F9A825;">1.4 times</h2>
-                        <p style="font-size:12px; color:#666;">(Duration: 4.5 months)</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.metric("Avg. GPA", "3.7 / 4.5", "Top 30%")
+                with col_i3:
+                    st.metric("Avg. Internships", "1.6", "Usually 1 startup + 1 major corp")
+
+                st.write("")
+                
+                # 2. Company & Job Function Distribution
+                c1, c2 = st.columns([1, 1])
+                with c1:
+                    st.markdown("#### 🏢 Top Employers")
+                    # Horizontal bar chart for readability
+                    df_comp = pd.DataFrame([['Samsung Electronics', 45], ['LG CNS', 32], ['Kakao', 25], ['Hyundai Motor', 20], ['AmorePacific', 15]], columns=['Company', 'Hires'])
+                    st.bar_chart(df_comp.set_index('Company'), color="#4A90E2", horizontal=True)
+                with c2:
+                    st.markdown("#### 🛠️ Top Job Functions")
+                    # Simple breakdown
+                    df_job = pd.DataFrame([['Overseas Sales', 40], ['Marketing (Content)', 25], ['Data Analyst', 20], ['PM/Strategy', 15]], columns=['Role', 'Percentage'])
+                    st.bar_chart(df_job.set_index('Role'), color="#FFD54F")
 
                 st.divider()
-                st.subheader("📈 'Winning Path' Timeline")
-                st.caption("Common milestones of seniors who joined Top-tier companies.")
                 
-                career_path = graphviz.Digraph()
-                career_path.attr(rankdir='LR')
-                career_path.attr('node', shape='box', style='rounded,filled', fontname="sans-serif")
+                # 3. Enhanced Winning Path (Graphviz)
+                st.markdown("### 🛣️ The 'Winning Path' Strategy Map")
+                st.caption("A dual-track strategy combining **Visa eligibility** and **Career competency**.")
                 
-                career_path.node('Y2', 'Year 2\nTOPIK 4', fillcolor='#E3F2FD', color='#1565C0')
-                career_path.node('Y3', 'Year 3\nInternship (1x)', fillcolor='#FFF9C4', color='#FBC02D')
-                career_path.node('Y4', 'Year 4\nTOPIK 6 & KIIP', fillcolor='#FFCCBC', color='#D84315')
-                career_path.node('Job', 'Job Offer\n(Samsung/LG)', fillcolor='#C8E6C9', color='#2E7D32', shape='doubleoctagon')
+                winning_path = graphviz.Digraph()
+                winning_path.attr(rankdir='LR') # Left to Right
+                # Global settings
+                winning_path.attr('node', shape='box', style='rounded,filled', fontname="sans-serif", fontsize="12")
                 
-                career_path.edge('Y2', 'Y3')
-                career_path.edge('Y3', 'Y4')
-                career_path.edge('Y4', 'Job')
+                # Track 1: Visa (Blue)
+                winning_path.node('V1', 'KIIP Level 3\n(Year 2)', fillcolor='#E3F2FD', color='#1565C0')
+                winning_path.node('V2', 'KIIP Level 4\n(Year 3)', fillcolor='#E3F2FD', color='#1565C0')
+                winning_path.node('V3', 'KIIP Completion\n(Year 4)', fillcolor='#BBDEFB', color='#0D47A1', penwidth='2')
                 
-                st.graphviz_chart(career_path)
+                # Track 2: Career (Yellow/Orange)
+                winning_path.node('C1', 'Biz Korean Class\n(Year 2)', fillcolor='#FFF9C4', color='#FBC02D')
+                winning_path.node('C2', 'Startup Intern\n(Year 3 Summer)', fillcolor='#FFF9C4', color='#FBC02D')
+                winning_path.node('C3', 'Major Corp Intern\n(Year 4 Winter)', fillcolor='#FFE082', color='#F57F17', penwidth='2')
+                
+                # Goal
+                winning_path.node('Goal', '🏆 Job & E-7 Visa\n(Graduation)', fillcolor='#C8E6C9', color='#2E7D32', shape='doubleoctagon', fontsize="14")
+
+                # Edges
+                winning_path.edge('V1', 'V2')
+                winning_path.edge('V2', 'V3')
+                winning_path.edge('C1', 'C2')
+                winning_path.edge('C2', 'C3')
+                
+                # Cross connections (Synergy)
+                winning_path.edge('C2', 'V3', style='dashed', label='Points+', fontsize="10")
+                winning_path.edge('V3', 'Goal')
+                winning_path.edge('C3', 'Goal')
+                
+                st.graphviz_chart(winning_path)
+                
+                st.info("💡 **Strategic Insight:** Completing **KIIP** in Year 3 is crucial. It gives you +10 Visa points, which compensates for lack of full-time experience.")
 
             # [TAB 2] 성공 사례
             with tab_persona:
