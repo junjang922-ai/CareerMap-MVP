@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.6 (Global Login)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.7 (Smart Simulator)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -820,80 +820,195 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # 2. Visa Calculator (Interactive & Detailed)
+        # 2. Visa Calculator (F-2-7 Smart Simulator) - [UPGRADED]
         elif menu == "🛂 Visa Calculator (F-2-7)":
-            st.title("🧮 F-2-7 Visa Point Calculator")
-            st.caption("Check your eligibility for the Points-Based Resident Visa (F-2-7). You need **80 points** out of 100.")
+            st.title("🧮 F-2-7 Smart Simulator")
+            st.caption("Calculate your points accurately and simulate your future strategy.")
             
-            # Interactive Input Section
-            with st.container(border=True):
-                st.subheader("1. Base Points")
-                c1, c2 = st.columns(2)
-                with c1:
-                    age_opt = st.selectbox("Age", 
-                        ["20-24 (+23)", "25-29 (+25)", "30-34 (+23)", "35-39 (+20)"], index=1)
-                    edu_opt = st.selectbox("Education", 
-                        ["Bachelor (+10)", "Bachelor(STEM) (+12)", "Master (+15)", "Master(STEM) (+17)", "Ph.D (+20)"], index=0)
-                with c2:
-                    topik_opt = st.selectbox("Korean (TOPIK/KIIP)", 
-                        ["Level 1 (+0)", "Level 2 (+5)", "Level 3 (+10)", "Level 4 (+15)", "Level 5+ (+20)"], index=3)
-                    income_opt = st.selectbox("Yearly Income (Expected)", 
-                        ["None (Student) (+0)", "Over 30M KRW (+10)", "Over 40M KRW (+20)", "Over 50M KRW (+30)"], index=1)
+            # 탭 분리: 현재 점수 진단 vs 미래 시뮬레이션
+            tab_cal, tab_sim = st.tabs(["📊 Current Score", "🔮 Future Simulator"])
+            
+            # --- [TAB 1] 현재 점수 정밀 진단 ---
+            with tab_cal:
+                st.info("💡 **Did you know?** You need **80 points** out of 135 to apply for the F-2-7 visa.")
                 
-                # Dynamic Calculation Logic
-                score = 0
-                score += int(age_opt.split('+')[1].replace(')', ''))
-                score += int(edu_opt.split('+')[1].replace(')', ''))
-                score += int(topik_opt.split('+')[1].replace(')', ''))
-                score += int(income_opt.split('+')[1].replace(')', ''))
+                with st.form("visa_form"):
+                    col_base1, col_base2 = st.columns(2)
+                    
+                    with col_base1:
+                        st.markdown("##### 1. Age (Max 25)")
+                        age_input = st.slider("Select your Age", 18, 60, 24)
+                        # 나이 점수 로직 (실제 F-2-7 기준 근사치)
+                        if 18 <= age_input <= 24: age_pts = 23
+                        elif 25 <= age_input <= 29: age_pts = 25
+                        elif 30 <= age_input <= 34: age_pts = 23
+                        elif 35 <= age_input <= 39: age_pts = 20
+                        else: age_pts = 10
+                        st.caption(f"Score: +{age_pts}")
+
+                        st.markdown("##### 2. Education (Max 35)")
+                        edu_type = st.selectbox("Degree Type", 
+                            ["High School", "Associate (2yr)", "Bachelor (4yr)", "Master", "Ph.D"])
+                        is_korean_degree = st.checkbox("Is this a Korean Degree?")
+                        is_stem = st.checkbox("Is this a STEM Major?")
+                        
+                        # 학력 점수 로직
+                        edu_pts = 0
+                        if edu_type == "Associate (2yr)": edu_pts = 10
+                        elif edu_type == "Bachelor (4yr)": edu_pts = 15
+                        elif edu_type == "Master": edu_pts = 20
+                        elif edu_type == "Ph.D": edu_pts = 25
+                        
+                        # 가산점 (STEM 등)은 별도 항목이 아닌 학력 안에서 계산되는 경우가 많으나 여기선 Bonus로 뺌
+                        
+                        st.caption(f"Base Score: +{edu_pts}")
+
+                    with col_base2:
+                        st.markdown("##### 3. Korean Ability (Max 20)")
+                        korean_type = st.radio("Test Type", ["TOPIK", "KIIP (Social Integration)"], horizontal=True)
+                        korean_level = st.slider("Level (1-5+)", 1, 6, 4)
+                        
+                        # 한국어 점수 로직
+                        kor_pts = 0
+                        if korean_level == 1: kor_pts = 3
+                        elif korean_level == 2: kor_pts = 5
+                        elif korean_level == 3: kor_pts = 10
+                        elif korean_level == 4: kor_pts = 15
+                        elif korean_level >= 5: kor_pts = 20
+                        st.caption(f"Score: +{kor_pts}")
+
+                        st.markdown("##### 4. Annual Income (Max 60)")
+                        income_input = st.number_input("Yearly Income (Unit: 10,000 KRW)", min_value=0, value=0, step=100)
+                        st.caption("e.g. 3000 = 30 Million KRW")
+                        
+                        # 소득 점수 로직 (대략적 GNI 배수 기준)
+                        inc_pts = 0
+                        if income_input >= 10000: inc_pts = 60 # 1억 이상
+                        elif income_input >= 8000: inc_pts = 50
+                        elif income_input >= 6000: inc_pts = 45
+                        elif income_input >= 5000: inc_pts = 40
+                        elif income_input >= 4000: inc_pts = 30
+                        elif income_input >= 3000: inc_pts = 20 # GNI 0.7~
+                        else: inc_pts = 0
+                        st.caption(f"Score: +{inc_pts}")
+
+                    st.divider()
+                    
+                    st.markdown("##### 5. Bonus & Penalty")
+                    c_b1, c_b2 = st.columns(2)
+                    with c_b1:
+                        st.markdown("**Bonus (+)**")
+                        bonus_kiip = st.checkbox("KIIP Completion (+10)")
+                        bonus_kor_degree = False
+                        if is_korean_degree: # 위에서 체크한 것 연동
+                             st.success("✅ Korean Degree Bonus (+10) Applied")
+                             bonus_kor_degree = True
+                        bonus_volunteer = st.checkbox("Social Volunteer (>1yr) (+3)")
+                        
+                        total_bonus = 0
+                        if bonus_kiip: total_bonus += 10
+                        if bonus_kor_degree: total_bonus += 10
+                        if bonus_volunteer: total_bonus += 3
+                        
+                    with c_b2:
+                        st.markdown("**Penalty (-)**")
+                        penalty_violation = st.checkbox("Immigration Law Violation (-)")
+                        penalty_count = 0
+                        if penalty_violation:
+                            penalty_count = st.number_input("How many times?", 1, 3, 1)
+                        
+                        total_penalty = penalty_count * 10 # 1회당 10점 감점 가정
+                    
+                    st.write("")
+                    submit_cal = st.form_submit_button("🏁 Calculate My Score")
+                
+                if submit_cal:
+                    final_score = age_pts + edu_pts + kor_pts + inc_pts + total_bonus - total_penalty
+                    
+                    # 결과 시각화
+                    col_res1, col_res2 = st.columns([1, 2])
+                    with col_res1:
+                        st.metric("Total Score", f"{final_score} / 135", delta=f"{final_score - 80} gap")
+                    with col_res2:
+                        bar_color = "#4CAF50" if final_score >= 80 else "#FF5252"
+                        st.markdown(f"""
+                        <div style="margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; margin-bottom:5px;">
+                                <span>0</span><span>Pass (80)</span><span>135</span>
+                            </div>
+                            <div style="background-color:#EEE; border-radius:10px; height:25px; width:100%; position:relative;">
+                                <div style="background-color:{bar_color}; width:{min(final_score, 135)/135*100}%; height:100%; border-radius:10px;"></div>
+                                <div style="position:absolute; top:0; left:{80/135*100}%; width:2px; height:100%; background-color:black; opacity:0.5;"></div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    if final_score >= 80:
+                        st.balloons()
+                        st.success("🎉 **Safe Zone!** You satisfy the F-2-7 requirements.")
+                    else:
+                        st.error(f"🚨 **Danger Zone.** You need {80 - final_score} more points.")
+                        st.markdown("""
+                        <div style="background-color:#FFEBEE; padding:15px; border-radius:10px; border:1px solid #FFCDD2;">
+                            <b>💡 Immediate Actions to take:</b>
+                            <ul style="margin-bottom:0;">
+                                <li>If you finish <b>KIIP Level 5</b>, you get <b>+10 pts</b>.</li>
+                                <li>If you increase income to <b>30M KRW</b>, you get <b>+20 pts</b>.</li>
+                            </ul>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            # --- [TAB 2] 미래 시뮬레이터 (What-if Analysis) ---
+            with tab_sim:
+                st.markdown("### 🔮 What if...?")
+                st.caption("Simulate your future score by changing your conditions.")
+                
+                # 시뮬레이션용 세션 상태 (간소화)
+                if 'sim_kiip' not in st.session_state: st.session_state.sim_kiip = False
+                if 'sim_income' not in st.session_state: st.session_state.sim_income = 0
+                
+                c_s1, c_s2 = st.columns([1, 1])
+                with c_s1:
+                    st.markdown("**Current State**")
+                    # (위 탭 1에서 계산된 값을 가져왔다고 가정, 여기선 예시값 65)
+                    st.metric("Current Score", "65 pts", "D-2 Visa")
+                    
+                with c_s2:
+                    st.markdown("**Future Goal**")
+                    target_kiip = st.toggle("✅ Complete KIIP Level 5 (+10 pts)")
+                    target_master = st.toggle("🎓 Get Master's Degree (+5 pts)")
+                    target_income = st.select_slider("💰 Future Salary", options=["None", "30M", "40M", "50M"])
+                    
+                    sim_score = 65
+                    delta = 0
+                    
+                    if target_kiip: 
+                        sim_score += 10
+                        delta += 10
+                    if target_master: 
+                        sim_score += 5
+                        delta += 5
+                    
+                    inc_gain = 0
+                    if target_income == "30M": inc_gain = 20
+                    elif target_income == "40M": inc_gain = 30
+                    elif target_income == "50M": inc_gain = 40
+                    
+                    # 기존 소득 점수(0)를 뺀다고 가정하고 새로운 소득 점수 추가
+                    sim_score += inc_gain
+                    delta += inc_gain
+                    
+                    st.metric("Simulated Score", f"{sim_score} pts", f"+{delta} pts increase")
                 
                 st.divider()
                 
-                st.subheader("2. Bonus Points")
-                c3, c4 = st.columns(2)
-                with c3:
-                    kiip = st.checkbox("KIIP Completion (+10)")
-                    top_uni = st.checkbox("Times Top 500 Univ. (+15)")
-                with c4:
-                    korea_edu = st.checkbox("Study in Korea (3yr+) (+10)")
-                    volunteer = st.checkbox("Social Volunteer (>1yr) (+3)")
-                
-                if kiip: score += 10
-                if top_uni: score += 15
-                if korea_edu: score += 10
-                if volunteer: score += 3
-
-                # Result Visualization
-                st.write("")
-                st.write("")
-                st.markdown(f"<h3 style='text-align:center;'>Total Score: <span style='color:#4A90E2;'>{score}</span> / 100</h3>", unsafe_allow_html=True)
-                
-                # Progress Bar Color Logic
-                bar_color = "#4CAF50" if score >= 80 else "#FF9800"
-                st.markdown(f"""
-                <div style="background-color:#EEE; border-radius:15px; height:20px; width:100%; margin-bottom:10px;">
-                    <div style="background-color:{bar_color}; width:{min(score, 100)}%; height:100%; border-radius:15px; transition: width 0.5s;"></div>
-                </div>
-                """, unsafe_allow_html=True)
-
-                if score >= 80:
-                    st.success("🎉 Congratulations! You are eligible to apply for F-2-7.")
+                # 결과 멘트
+                if sim_score >= 80:
+                    st.success("🚀 **Strategy Success!** If you achieve these goals, you will pass.")
+                    st.markdown("**Recommended Roadmap:**")
+                    st.code("1. Enroll in KIIP (Month 1)\n2. Graduate with Master's (Year 2)\n3. Secure a job over 30M KRW (Year 2.5)")
                 else:
-                    needed = 80 - score
-                    st.error(f"🚨 You need {needed} more points.")
-                    
-                    # Gap Analysis (Wayble Style)
-                    st.markdown("#### 💡 How to fill the Gap?")
-                    st.markdown(f"""
-                    <div class="feed-card">
-                        <b>Recommendations:</b>
-                        <ul>
-                            <li>📚 <b>KIIP Program:</b> Easiest way to get +10 points. (Takes 6 months)</li>
-                            <li>💰 <b>Income Strategy:</b> Negotiate salary over 30M KRW.</li>
-                            <li>🎓 <b>Education:</b> A Master's degree gives you +5 more points.</li>
-                        </ul>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.warning("⚠️ Still not enough. You might need higher income or STEM major bonus.")
 
         # 3. Visa Roadmap (Graphviz Visualization)
         elif menu == "🗺️ Visa Roadmap":
