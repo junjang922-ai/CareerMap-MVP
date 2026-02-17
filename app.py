@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.7 (Smart Simulator)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.8 (Smart Roadmap)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -1010,47 +1010,106 @@ elif st.session_state.step == 4:
                 else:
                     st.warning("⚠️ Still not enough. You might need higher income or STEM major bonus.")
 
-        # 3. Visa Roadmap (Graphviz Visualization)
+        # 3. Visa Roadmap (Timeline & Checklist) - [UPGRADED]
         elif menu == "🗺️ Visa Roadmap":
-            st.title("🗺️ Visa Roadmap")
-            st.caption("Your strategic timeline from Student to Resident.")
+            st.title("🗺️ Smart Visa Roadmap")
+            st.caption("A strategic timeline based on your expected graduation date.")
             
-            col_r1, col_r2 = st.columns([3, 1])
-            with col_r1:
-                # Graphviz Flowchart
-                visa_map = graphviz.Digraph()
-                visa_map.attr(rankdir='LR')
-                visa_map.attr('node', shape='box', style='rounded,filled', fontname="sans-serif")
+            # 1. Graduation Setup (졸업일 설정)
+            with st.expander("🎓 Set Graduation Date", expanded=True):
+                col_date1, col_date2 = st.columns([2, 1])
+                with col_date1:
+                    grad_date = st.date_input("Expected Graduation Date", datetime.date(2027, 2, 28))
+                with col_date2:
+                    today = datetime.date.today()
+                    d_day = (grad_date - today).days
+                    st.metric("Time Remaining", f"D-{d_day}", "Keep pushing!")
+
+            st.divider()
+
+            # 2. Timeline Visualization (Vertical Stepper UI)
+            # 현재 시점에 따라 Active 단계가 달라지도록 로직 구성 (예시)
+            current_stage = 1 # 0: D-2, 1: Prep, 2: D-10, 3: E-7
+            
+            stages = [
+                {
+                    "id": 0,
+                    "title": "STEP 1: D-2 Maintenance (Student)",
+                    "period": "Until Graduation",
+                    "status": "Completed" if d_day < 365 else "Active",
+                    "desc": "Focus on GPA and Part-time Job Report (S-3).",
+                    "alert": "🚨 Working part-time without reporting to immigration is illegal. You will be denied E-7 later.",
+                    "docs": ["Part-time Permit (HiKorea)", "Transcript (3.0+)"]
+                },
+                {
+                    "id": 1,
+                    "title": "STEP 2: D-10 Preparation",
+                    "period": "D-90 to Graduation",
+                    "status": "Active" if 0 < d_day <= 365 else "Upcoming",
+                    "desc": "Prepare to switch to 'Job Seeker Visa' immediately after graduation.",
+                    "alert": "⚠️ You must have 60+ points on the D-10 scorecard.",
+                    "docs": ["Job Seeking Plan (Monthly)", "Bank Statement (4.5M KRW+)", "Diploma / Proof of Degree"]
+                },
+                {
+                    "id": 2,
+                    "title": "STEP 3: The Golden Time (Internship)",
+                    "period": "Graduation + 6 Months",
+                    "status": "Upcoming",
+                    "desc": "Find a full-time offer within 6 months. Convert Internship to Probation.",
+                    "alert": "💡 Your salary must be above 80% of GNI (approx. 34M KRW).",
+                    "docs": ["Internship Contract", "Company Business License"]
+                },
+                {
+                    "id": 3,
+                    "title": "STEP 4: E-7 Application",
+                    "period": "With Job Contract",
+                    "status": "Upcoming",
+                    "desc": "The final boss. Apply for the Professional Visa with your company.",
+                    "alert": "🔥 The company must have a Korean:Foreigner ratio of 5:1.",
+                    "docs": ["Employment Contract", "Company Recommendation Letter", "Tax Records (Company)"]
+                }
+            ]
+
+            # Timeline Rendering
+            for stage in stages:
+                # 스타일링: 현재 단계는 파란색 테두리와 그림자
+                border_color = "#4A90E2" if stage['status'] == "Active" else "#E0E0E0"
+                bg_color = "#FDFEFF" if stage['status'] == "Active" else "#F9F9F9"
+                opacity = "1.0" if stage['status'] in ["Active", "Completed"] else "0.7"
                 
-                # Nodes
-                visa_map.node('D2', 'D-2\n(Student)', fillcolor='#E3F2FD', color='#1565C0')
-                visa_map.node('D10', 'D-10\n(Job Seeker)', fillcolor='#FFF9C4', color='#FBC02D')
-                visa_map.node('E7', 'E-7\n(Professional)', fillcolor='#C8E6C9', color='#2E7D32')
-                visa_map.node('F2', 'F-2-7\n(Resident)', fillcolor='#FFCCBC', color='#D84315', shape='doubleoctagon')
-                
-                # Edges with Labels
-                visa_map.edge('D2', 'D10', label='Graduation')
-                visa_map.edge('D10', 'E7', label='Job Contract\n(Matching Major)')
-                visa_map.edge('E7', 'F2', label='80 Points\n(After 1-3 yrs)')
-                visa_map.edge('D2', 'F2', label='Direct Apply\n(Master + Job)', style='dashed')
-                
-                st.graphviz_chart(visa_map)
-                
-            with col_r2:
-                st.markdown("#### Current Stage")
-                st.markdown("""
-                <div class="metric-box" style="border-left:5px solid #1565C0;">
-                    <b>STEP 1: D-2</b><br>
-                    <span style="font-size:12px;">Maintain GPA & Learn Korean</span>
+                # HTML Container
+                st.markdown(f"""
+                <div style="
+                    border-left: 5px solid {border_color};
+                    background-color: {bg_color};
+                    padding: 20px;
+                    border-radius: 5px;
+                    margin-bottom: 20px;
+                    opacity: {opacity};
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                ">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:#333;">{stage['title']}</h4>
+                        <span class="tag">{stage['period']}</span>
+                    </div>
+                    <p style="margin:10px 0; font-size:14px; color:#555;">{stage['desc']}</p>
+                    
+                    <div style="background-color:#FFEBEE; padding:10px; border-radius:5px; font-size:13px; color:#D32F2F; margin-bottom:10px;">
+                        {stage['alert']}
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
-                st.markdown("⬇️ Next")
-                st.markdown("""
-                <div class="metric-box" style="opacity:0.6;">
-                    <b>STEP 2: D-10</b><br>
-                    <span style="font-size:12px;">Need 60pts to apply</span>
-                </div>
-                """, unsafe_allow_html=True)
+                
+                # Expandable Checklist (Streamlit component inside loop)
+                with st.expander(f"📂 Open Document Checklist ({stage['title']})"):
+                    st.write("**Required Documents:**")
+                    for doc in stage['docs']:
+                        st.checkbox(doc, key=f"doc_{stage['id']}_{doc}")
+                    
+                    if stage['status'] == "Active":
+                        st.button(f"Start {stage['title'].split(':')[0]} Guide", key=f"btn_{stage['id']}")
+
+            st.info("💡 **Tip:** E-7 screening takes 3-4 weeks. Do not travel outside Korea during the application.")
 
         # 4. Visa-Sponsored Job Board
         elif menu == "🏢 Visa-Sponsored Jobs":
