@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.8 (Smart Roadmap)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.8 (Final Fix)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -1010,12 +1010,12 @@ elif st.session_state.step == 4:
                 else:
                     st.warning("⚠️ Still not enough. You might need higher income or STEM major bonus.")
 
-        # 3. Visa Roadmap (Timeline & Checklist) - [UPGRADED]
+        # 3. Visa Roadmap (Timeline & Checklist) - [FIXED]
         elif menu == "🗺️ Visa Roadmap":
             st.title("🗺️ Smart Visa Roadmap")
             st.caption("A strategic timeline based on your expected graduation date.")
             
-            # 1. Graduation Setup (졸업일 설정)
+            # 1. Graduation Setup
             with st.expander("🎓 Set Graduation Date", expanded=True):
                 col_date1, col_date2 = st.columns([2, 1])
                 with col_date1:
@@ -1027,9 +1027,8 @@ elif st.session_state.step == 4:
 
             st.divider()
 
-            # 2. Timeline Visualization (Vertical Stepper UI)
-            # 현재 시점에 따라 Active 단계가 달라지도록 로직 구성 (예시)
-            current_stage = 1 # 0: D-2, 1: Prep, 2: D-10, 3: E-7
+            # 2. Timeline Visualization
+            current_stage = 1 
             
             stages = [
                 {
@@ -1070,37 +1069,26 @@ elif st.session_state.step == 4:
                 }
             ]
 
-            # Timeline Rendering
+            # Timeline Rendering (Fixed Indentation Issue)
             for stage in stages:
-                # 스타일링: 현재 단계는 파란색 테두리와 그림자
                 border_color = "#4A90E2" if stage['status'] == "Active" else "#E0E0E0"
                 bg_color = "#FDFEFF" if stage['status'] == "Active" else "#F9F9F9"
                 opacity = "1.0" if stage['status'] in ["Active", "Completed"] else "0.7"
                 
-                # HTML Container
+                # HTML 내부에 들여쓰기를 최소화하여 Code Block 인식을 방지함
                 st.markdown(f"""
-                <div style="
-                    border-left: 5px solid {border_color};
-                    background-color: {bg_color};
-                    padding: 20px;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                    opacity: {opacity};
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-                ">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="margin:0; color:#333;">{stage['title']}</h4>
-                        <span class="tag">{stage['period']}</span>
-                    </div>
-                    <p style="margin:10px 0; font-size:14px; color:#555;">{stage['desc']}</p>
-                    
-                    <div style="background-color:#FFEBEE; padding:10px; border-radius:5px; font-size:13px; color:#D32F2F; margin-bottom:10px;">
-                        {stage['alert']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+<div style="border-left: 5px solid {border_color}; background-color: {bg_color}; padding: 20px; border-radius: 5px; margin-bottom: 20px; opacity: {opacity}; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="margin:0; color:#333;">{stage['title']}</h4>
+        <span class="tag">{stage['period']}</span>
+    </div>
+    <p style="margin:10px 0; font-size:14px; color:#555;">{stage['desc']}</p>
+    <div style="background-color:#FFEBEE; padding:10px; border-radius:5px; font-size:13px; color:#D32F2F; margin-bottom:10px;">
+        {stage['alert']}
+    </div>
+</div>
+""", unsafe_allow_html=True)
                 
-                # Expandable Checklist (Streamlit component inside loop)
                 with st.expander(f"📂 Open Document Checklist ({stage['title']})"):
                     st.write("**Required Documents:**")
                     for doc in stage['docs']:
