@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.8 (Final Fix)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.9 (Full Version)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -718,9 +718,10 @@ elif st.session_state.step == 4:
             
             st.divider()
             
-            # Global 전용 메뉴
+            # Global 전용 메뉴 [NEW: Career Guide Added]
             menu = st.radio("MENU", [
                 "🏠 Dashboard", 
+                "🎓 Alumni Career Guide",
                 "🛂 Visa Calculator (F-2-7)", 
                 "🗺️ Visa Roadmap", 
                 "🏢 Visa-Sponsored Jobs", 
@@ -744,7 +745,7 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features (Wayble Benchmarked Upgrade)
+    # [Branch 1] Global Track Features
     # ----------------------------------------------------------------
     if track == 'Global':
         
@@ -753,8 +754,7 @@ elif st.session_state.step == 4:
             st.title(f"Hello, {user_name}! 👋")
             st.caption("Your personalized Visa & Career Dashboard")
             
-            # [SECTION A] Status Summary (Wayble Style: Confidence Building)
-            # 현재 비자 상태와 목표(E-7/F-2-7)까지의 거리를 시각화
+            # [SECTION A] Status Summary
             current_points = 65 # 예시 점수
             target_points = 80
             gap = target_points - current_points
@@ -819,6 +819,69 @@ elif st.session_state.step == 4:
                     <p style="font-size:12px; margin-bottom:0;">E-7-4 Quota has been increased by 20% this year...</p>
                 </div>
                 """, unsafe_allow_html=True)
+
+        # [NEW] Alumni Career Guide (Big Data Feature)
+        elif menu == "🎓 Alumni Career Guide":
+            st.title("🎓 Alumni Career Guide")
+            st.caption(f"Strategy based on **1,240 successful international alumni** from {st.session_state.user_info.get('univ')}.")
+            
+            # 1. Success Probability
+            st.markdown("### 🏆 Your Success Probability")
+            c_prob1, c_prob2 = st.columns([1, 2])
+            with c_prob1:
+                st.metric("Acceptance Rate", "42%", "+5% vs Average")
+            with c_prob2:
+                st.markdown("""
+                <div class="feed-card" style="background-color:#E3F2FD; border:none;">
+                    <b>💡 Insight:</b><br>
+                    Seniors with your major (Business) usually go to <b>Samsung Electronics (15%)</b>, <b>LG CNS (12%)</b>, and <b>Hyundai Motor (8%)</b>.
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.divider()
+            
+            # 2. The "Winning Path" (Timeline)
+            st.markdown("### 🛣️ The 'Winning Path' (Standard Roadmap)")
+            st.caption("Common milestones of seniors who got E-7 visa within 3 months after graduation.")
+            
+            # Graphviz for Career Path
+            career_path = graphviz.Digraph()
+            career_path.attr(rankdir='LR')
+            career_path.attr('node', shape='box', style='rounded,filled', fillcolor='#FFFFFF', color='#333', fontname="sans-serif")
+            
+            career_path.node('Y2', 'Year 2\nTOPIK 4', fillcolor='#E3F2FD', color='#1565C0')
+            career_path.node('Y3', 'Year 3\nInternship (1x)', fillcolor='#FFF9C4', color='#FBC02D')
+            career_path.node('Y4', 'Year 4\nTOPIK 6 & KIIP', fillcolor='#FFCCBC', color='#D84315')
+            career_path.node('Job', 'Job Offer\n(Samsung/LG)', fillcolor='#C8E6C9', color='#2E7D32', shape='doubleoctagon')
+            
+            career_path.edge('Y2', 'Y3')
+            career_path.edge('Y3', 'Y4')
+            career_path.edge('Y4', 'Job')
+            
+            st.graphviz_chart(career_path)
+            
+            st.divider()
+            
+            # 3. Spec Gap Analysis (Radar Chart Simulation)
+            st.markdown("### 📊 Spec Gap Analysis")
+            st.caption("Comparing you vs. Average Successful Candidate")
+            
+            col_gap1, col_gap2 = st.columns(2)
+            with col_gap1:
+                st.markdown("**You (Current)**")
+                st.progress(65)
+                st.write("- TOPIK: Level 4")
+                st.write("- Internship: None")
+                st.write("- GPA: 3.8 / 4.5")
+            
+            with col_gap2:
+                st.markdown("**Average Senior (Target)**")
+                st.progress(85)
+                st.write("- TOPIK: **Level 6** (Gap: 2 Levels)")
+                st.write("- Internship: **1.2 times** (Gap: Need 1)")
+                st.write("- GPA: 3.7 / 4.5 (✅ You are good!)")
+            
+            st.info("🚀 **Action Item:** You have a better GPA than average! Focus on **TOPIK 6** and **One Internship** to match the winning standard.")
 
         # 2. Visa Calculator (F-2-7 Smart Simulator) - [UPGRADED]
         elif menu == "🛂 Visa Calculator (F-2-7)":
@@ -1010,7 +1073,7 @@ elif st.session_state.step == 4:
                 else:
                     st.warning("⚠️ Still not enough. You might need higher income or STEM major bonus.")
 
-        # 3. Visa Roadmap (Timeline & Checklist) - [FIXED]
+        # 3. Visa Roadmap (Timeline & Checklist) - [FIXED INDENTATION]
         elif menu == "🗺️ Visa Roadmap":
             st.title("🗺️ Smart Visa Roadmap")
             st.caption("A strategic timeline based on your expected graduation date.")
