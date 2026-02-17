@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.9 (Full Version)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.9 (Alumni Upgrade)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -772,7 +772,7 @@ elif st.session_state.step == 4:
             
             col_d1, col_d2 = st.columns([1.2, 0.8])
             
-            # [SECTION B] Weekly Quests (Action Items)
+            # [SECTION B] Weekly Quests
             with col_d1:
                 st.subheader("✅ Weekly Quests")
                 st.caption("Complete these to boost your visa points.")
@@ -797,7 +797,7 @@ elif st.session_state.step == 4:
                     </div>
                     """, unsafe_allow_html=True)
 
-            # [SECTION C] Recommended Jobs (Visa Filtered)
+            # [SECTION C] Recommended Jobs
             with col_d2:
                 st.subheader("🔥 Top Pick for You")
                 st.markdown(f"""
@@ -820,68 +820,150 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # [NEW] Alumni Career Guide (Big Data Feature)
+        # [NEW] Alumni Career Guide (Deep-Dive & Interactive Version)
         elif menu == "🎓 Alumni Career Guide":
             st.title("🎓 Alumni Career Guide")
-            st.caption(f"Strategy based on **1,240 successful international alumni** from {st.session_state.user_info.get('univ')}.")
+            st.caption(f"Analyze data from **1,240 successful international alumni** to build your winning strategy.")
             
-            # 1. Success Probability
-            st.markdown("### 🏆 Your Success Probability")
-            c_prob1, c_prob2 = st.columns([1, 2])
-            with c_prob1:
-                st.metric("Acceptance Rate", "42%", "+5% vs Average")
-            with c_prob2:
-                st.markdown("""
-                <div class="feed-card" style="background-color:#E3F2FD; border:none;">
-                    <b>💡 Insight:</b><br>
-                    Seniors with your major (Business) usually go to <b>Samsung Electronics (15%)</b>, <b>LG CNS (12%)</b>, and <b>Hyundai Motor (8%)</b>.
+            # 1. Smart Filter
+            with st.container(border=True):
+                st.markdown("#### 🔎 Filter Alumni Data")
+                c_fil1, c_fil2, c_fil3 = st.columns(3)
+                with c_fil1:
+                    filter_nation = st.multiselect("Nationality", ["Vietnam", "China", "USA", "France", "Japan"], default=["Vietnam"])
+                with c_fil2:
+                    filter_major = st.multiselect("Major", ["Business", "Economics", "Computer Sci", "Mechanical Eng"], default=["Business"])
+                with c_fil3:
+                    filter_company = st.multiselect("Target Company", ["Samsung", "LG", "Kakao", "Hyundai", "Startups"])
+                
+                st.markdown(f"""
+                <div style="background-color:#E3F2FD; padding:10px; border-radius:8px; font-size:14px; color:#1565C0; margin-top:10px;">
+                    📊 Found <b>142</b> successful alumni matching your profile (<b>{', '.join(filter_nation)}</b> / <b>{', '.join(filter_major)}</b>).
                 </div>
                 """, unsafe_allow_html=True)
-            
-            st.divider()
-            
-            # 2. The "Winning Path" (Timeline)
-            st.markdown("### 🛣️ The 'Winning Path' (Standard Roadmap)")
-            st.caption("Common milestones of seniors who got E-7 visa within 3 months after graduation.")
-            
-            # Graphviz for Career Path
-            career_path = graphviz.Digraph()
-            career_path.attr(rankdir='LR')
-            career_path.attr('node', shape='box', style='rounded,filled', fillcolor='#FFFFFF', color='#333', fontname="sans-serif")
-            
-            career_path.node('Y2', 'Year 2\nTOPIK 4', fillcolor='#E3F2FD', color='#1565C0')
-            career_path.node('Y3', 'Year 3\nInternship (1x)', fillcolor='#FFF9C4', color='#FBC02D')
-            career_path.node('Y4', 'Year 4\nTOPIK 6 & KIIP', fillcolor='#FFCCBC', color='#D84315')
-            career_path.node('Job', 'Job Offer\n(Samsung/LG)', fillcolor='#C8E6C9', color='#2E7D32', shape='doubleoctagon')
-            
-            career_path.edge('Y2', 'Y3')
-            career_path.edge('Y3', 'Y4')
-            career_path.edge('Y4', 'Job')
-            
-            st.graphviz_chart(career_path)
-            
-            st.divider()
-            
-            # 3. Spec Gap Analysis (Radar Chart Simulation)
-            st.markdown("### 📊 Spec Gap Analysis")
-            st.caption("Comparing you vs. Average Successful Candidate")
-            
-            col_gap1, col_gap2 = st.columns(2)
-            with col_gap1:
-                st.markdown("**You (Current)**")
-                st.progress(65)
-                st.write("- TOPIK: Level 4")
-                st.write("- Internship: None")
-                st.write("- GPA: 3.8 / 4.5")
-            
-            with col_gap2:
-                st.markdown("**Average Senior (Target)**")
-                st.progress(85)
-                st.write("- TOPIK: **Level 6** (Gap: 2 Levels)")
-                st.write("- Internship: **1.2 times** (Gap: Need 1)")
-                st.write("- GPA: 3.7 / 4.5 (✅ You are good!)")
-            
-            st.info("🚀 **Action Item:** You have a better GPA than average! Focus on **TOPIK 6** and **One Internship** to match the winning standard.")
+
+            st.write("")
+
+            tab_insight, tab_persona, tab_mentoring = st.tabs(["📊 Data Insights", "👤 Success Stories (Role Model)", "☕ Request Coffee Chat"])
+
+            # [TAB 1] 데이터 인사이트
+            with tab_insight:
+                col_i1, col_i2 = st.columns([1.5, 1])
+                
+                with col_i1:
+                    st.subheader("🏢 Where did they go?")
+                    df_company = pd.DataFrame({
+                        'Company': ['Samsung Electronics', 'LG CNS', 'Hyundai Motor', 'SK Hynix', 'Startups', 'Others'],
+                        'Count': [45, 32, 20, 15, 12, 18]
+                    })
+                    st.bar_chart(df_company.set_index('Company'), color="#4A90E2")
+                    
+                with col_i2:
+                    st.subheader("🔑 Key Spec Analysis")
+                    st.markdown("""
+                    <div class="metric-box">
+                        <p style="margin-bottom:5px;"><b>🗣️ Average TOPIK Score</b></p>
+                        <h2 style="margin:0; color:#2E7D32;">Level 5.8</h2>
+                        <p style="font-size:12px; color:#666;">(Sales roles require Level 6)</p>
+                        <hr>
+                        <p style="margin-bottom:5px;"><b>💼 Avg. Internship Count</b></p>
+                        <h2 style="margin:0; color:#F9A825;">1.4 times</h2>
+                        <p style="font-size:12px; color:#666;">(Duration: 4.5 months)</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.divider()
+                st.subheader("📈 'Winning Path' Timeline")
+                st.caption("Common milestones of seniors who joined Top-tier companies.")
+                
+                career_path = graphviz.Digraph()
+                career_path.attr(rankdir='LR')
+                career_path.attr('node', shape='box', style='rounded,filled', fontname="sans-serif")
+                
+                career_path.node('Y2', 'Year 2\nTOPIK 4', fillcolor='#E3F2FD', color='#1565C0')
+                career_path.node('Y3', 'Year 3\nInternship (1x)', fillcolor='#FFF9C4', color='#FBC02D')
+                career_path.node('Y4', 'Year 4\nTOPIK 6 & KIIP', fillcolor='#FFCCBC', color='#D84315')
+                career_path.node('Job', 'Job Offer\n(Samsung/LG)', fillcolor='#C8E6C9', color='#2E7D32', shape='doubleoctagon')
+                
+                career_path.edge('Y2', 'Y3')
+                career_path.edge('Y3', 'Y4')
+                career_path.edge('Y4', 'Job')
+                
+                st.graphviz_chart(career_path)
+
+            # [TAB 2] 성공 사례
+            with tab_persona:
+                st.subheader("👤 Find your Role Model")
+                st.caption("Detailed profiles of anonymous seniors. Clone their strategy!")
+                
+                with st.expander("🥇 Case 1: Samsung Electronics / Overseas Sales (Vietnam)", expanded=True):
+                    c_p1, c_p2 = st.columns([1, 2])
+                    with c_p1:
+                        st.markdown("**Profile**")
+                        st.markdown("- **Nationality:** Vietnam")
+                        st.markdown("- **Major:** Business (GPA 3.9)")
+                        st.markdown("- **Visa:** D-2 -> E-7")
+                    with c_p2:
+                        st.markdown("**Core Competencies**")
+                        st.info("✅ **TOPIK 6** (Fluent)")
+                        st.info("✅ **Internship:** 6 months at Trading Company")
+                        st.info("✅ **Extra:** President of Vietnamese Student Association")
+                    
+                    st.markdown("**💡 Senior's Tip:**")
+                    st.write(" > \"For sales roles, speaking is more important than writing. I practiced interview answers 100 times.\"")
+                    if st.button("📌 Benchmark this Senior (Save to Roadmap)"):
+                        st.toast("Added to your roadmap!", icon="✅")
+
+                with st.expander("🥈 Case 2: Moloco / Data Analyst", expanded=False):
+                    c_p3, c_p4 = st.columns([1, 2])
+                    with c_p3:
+                        st.markdown("**Profile**")
+                        st.markdown("- **Nationality:** USA")
+                        st.markdown("- **Major:** Applied Statistics")
+                        st.markdown("- **Visa:** F-4")
+                    with c_p4:
+                        st.markdown("**Core Competencies**")
+                        st.info("✅ **TOPIK 4** (Business Level)")
+                        st.info("✅ **Projects:** 3 Kaggle Competitions")
+                        st.info("✅ **Skill:** SQL, Python, Tableau")
+                    
+                    st.markdown("**💡 Senior's Tip:**")
+                    st.write(" > \"Tech companies care less about Korean. Build a strong GitHub portfolio.\"")
+
+            # [TAB 3] 멘토링 연결
+            with tab_mentoring:
+                st.subheader("☕ Connect with Alumni")
+                st.write("Directly ask questions to seniors who are working at your dream company.")
+                
+                m1, m2 = st.columns(2)
+                with m1:
+                    st.markdown("""
+                    <div class="feed-card">
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <div style="background-color:#E3F2FD; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:10px;">👨‍💼</div>
+                            <div>
+                                <h4 style="margin:0;">Minh Nguyen</h4>
+                                <span style="font-size:12px; color:#555;">Samsung Electronics (3y)</span>
+                            </div>
+                        </div>
+                        <p style="font-size:13px; color:#666;">"I can help with resume reviews for sales roles."</p>
+                        <button style="width:100%; background-color:#4A90E2; color:white; border:none; padding:5px; border-radius:5px;">Request Coffee Chat (30min)</button>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with m2:
+                    st.markdown("""
+                    <div class="feed-card">
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <div style="background-color:#FFF3E0; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:10px;">👩‍💻</div>
+                            <div>
+                                <h4 style="margin:0;">Sarah Lee</h4>
+                                <span style="font-size:12px; color:#555;">Coupang (2y)</span>
+                            </div>
+                        </div>
+                        <p style="font-size:13px; color:#666;">"Ask me anything about F-series visa change."</p>
+                        <button style="width:100%; background-color:#4A90E2; color:white; border:none; padding:5px; border-radius:5px;">Request Coffee Chat (30min)</button>
+                    </div>
+                    """, unsafe_allow_html=True)
 
         # 2. Visa Calculator (F-2-7 Smart Simulator) - [UPGRADED]
         elif menu == "🛂 Visa Calculator (F-2-7)":
