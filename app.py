@@ -6,7 +6,7 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v7.5 (Wayble Update)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v7.6 (Global Login)", page_icon="🧭", layout="wide")
 
 # 세션 상태 관리
 if 'step' not in st.session_state:
@@ -24,8 +24,8 @@ if 'signup_status' not in st.session_state:
 
 if 'diary_logs' not in st.session_state:
     st.session_state.diary_logs = [
-        {"date": "2026-02-01", "q": "오늘 가장 뿌듯했던 일은?", "a": "사수님께 엑셀 정리 잘했다고 칭찬받음! VLOOKUP 드디어 마스터했다."},
-        {"date": "2026-02-02", "q": "오늘 실수한 점이 있다면?", "a": "메일 참조(CC)에 팀장님을 빼먹었다... 다음엔 꼭 더블체크 하자."}
+        {"date": "2026-02-01", "q": "Today's achievement?", "a": "Managed to finish the sales report in Korean without errors!"},
+        {"date": "2026-02-02", "q": "What was difficult today?", "a": "Business email etiquette is still tricky..."}
     ]
 if 'diary_streak' not in st.session_state:
     st.session_state.diary_streak = 3
@@ -189,7 +189,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# STEP 1: 로그인 및 회원가입 (유지)
+# STEP 1: 로그인 및 회원가입
 # ==========================================
 if st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -211,24 +211,24 @@ if st.session_state.step == 1:
                 st.write("")
                 if st.button("시작하기"):
                     if login_id:
-                        # 로그인 성공 시 기존 회원 데이터 로드 시뮬레이션 -> 바로 Step 4로 이동
+                        # [수정됨] 로그인 성공 시 'Global Track'으로 자동 설정
                         st.session_state.user_info = {
                             'id': login_id,
-                            'name': login_id + "님",
-                            'track': 'Senior', # 기본값 (테스트용)
-                            'univ': '연세대학교',
-                            'major': '경영학과',
-                            'target_job': 'PM/서비스기획',
-                            'test_keyword': '전략가형 (Strategic)',
+                            'name': login_id, # 영문 느낌을 위해 '님' 제거
+                            'track': 'Global', # <--- 여기를 Global로 변경했습니다!
+                            'univ': 'Yonsei Univ.',
+                            'major': 'Business',
+                            'target_job': 'Global Strategy',
+                            'test_keyword': 'Strategic',
                             'visa_type': 'D-2',
-                            'topik': 'Level 5'
+                            'topik': 'Level 4'
                         }
                         st.session_state.step = 4 # 대시보드로 직행
                         st.rerun()
                     else:
                         st.warning("아이디를 입력해주세요.")
 
-        # [Tab 2] 회원가입
+        # [Tab 2] 회원가입 (유지)
         with tab2:
             st.markdown("#### 환영합니다! 👋\n**당신의 취업을 진심으로 응원해요**")
             st.write("")
