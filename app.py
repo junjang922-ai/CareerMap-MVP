@@ -189,11 +189,11 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# [STEP 0] 랜딩 페이지 (Landing Page) - [DESIGN UPGRADED & ALIGNED]
+# [STEP 0] 랜딩 페이지 (Landing Page) - [DESIGN UPGRADED]
 # ==========================================
 if st.session_state.step == 0:
     
-    # 1. CSS Styles (Clubmate Style + New Hero)
+    # 1. CSS Styles (Clubmate Style)
     st.markdown("""
     <style>
     /* 헤더 스타일 */
@@ -212,44 +212,29 @@ if st.session_state.step == 0:
         font-family: 'Pretendard', sans-serif;
         text-decoration: none;
     }
-    /* 네비게이션 링크 컨테이너 정렬 */
-    .nav-links-container {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        height: 42px; /* 버튼 높이와 맞춰서 정렬 */
-    }
     .nav-link {
         font-size: 15px;
         color: #546E7A;
-        margin-left: 25px;
+        margin-left: 20px;
         text-decoration: none;
         font-weight: 500;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-    .nav-link:hover {
-        color: #4A90E2;
     }
 
-    /* 히어로 섹션 스타일 (2단 레이아웃) */
+    /* 히어로 섹션 스타일 */
     .hero-wrapper {
-        padding: 60px 20px;
+        text-align: center;
+        padding: 80px 20px 40px 20px;
         background: radial-gradient(50% 50% at 50% 50%, #F5F9FF 0%, #F7F9FC 100%);
         border-radius: 30px;
-        margin-bottom: 50px;
-    }
-    .hero-content-left {
-        text-align: left;
-        padding-right: 20px;
+        margin-bottom: 40px;
     }
     .hero-main {
-        font-size: 46px;
+        font-size: 52px;
         font-weight: 800;
         color: #1A2B3C;
-        line-height: 1.3;
+        line-height: 1.25;
         margin-bottom: 20px;
-        letter-spacing: -0.5px;
+        letter-spacing: -1px;
     }
     .hero-highlight {
         color: #4A90E2;
@@ -258,24 +243,11 @@ if st.session_state.step == 0:
         border-radius: 8px;
     }
     .hero-desc {
-        font-size: 18px;
+        font-size: 19px;
         color: #546E7A;
-        margin-bottom: 35px;
+        margin-bottom: 40px;
         line-height: 1.6;
         font-weight: 400;
-    }
-    .hero-image-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-    }
-    .hero-image {
-        max-width: 100%;
-        height: auto;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(74, 144, 226, 0.15);
-        object-fit: cover;
     }
     
     /* 카드 디자인 */
@@ -325,28 +297,21 @@ if st.session_state.step == 0:
     </style>
     """, unsafe_allow_html=True)
 
-    # 2. Header (Navigation Bar) - [정렬 수정됨]
+    # 2. Header (Navigation Bar)
+    # 상단에 로고와 메뉴를 배치하여 '비어 보이는' 느낌 제거
     col_h1, col_h2, col_h3 = st.columns([2, 4, 1])
     with col_h1:
         st.markdown('<div class="logo-text">🧭 Career Map</div>', unsafe_allow_html=True)
     with col_h2:
-        # Flexbox 컨테이너로 감싸서 수직 중앙 정렬 및 우측 정렬
+        # 가상의 메뉴 (디자인 요소)
         st.markdown("""
-        <div class="nav-links-container">
+        <div style="text-align: right; padding-top: 5px;">
             <span class="nav-link">Visa Calculator</span>
             <span class="nav-link">Success Stories</span>
             <span class="nav-link">Pricing</span>
         </div>
         """, unsafe_allow_html=True)
     with col_h3:
-        # 버튼 위쪽 여백(margin-top)을 조금 주어 텍스트와 시각적 높이를 맞춤
-        st.markdown("""
-        <style>
-        div.stButton > button {
-            margin-top: 5px; /* 미세 조정 */
-        }
-        </style>
-        """, unsafe_allow_html=True)
         if st.button("Log in", key="top_login_btn"):
              st.session_state.step = 1
              st.rerun()
@@ -354,67 +319,46 @@ if st.session_state.step == 0:
     st.write("")
     st.write("")
 
-    # 3. Hero Section (Main Hook) - [2단 레이아웃 적용 및 디자인 개선]
-    st.markdown('<div class="hero-wrapper">', unsafe_allow_html=True)
-    col_hero_left, col_hero_right = st.columns([1.1, 0.9]) # 좌측 텍스트 영역을 조금 더 넓게
-
-    # [좌측] 텍스트 및 메인 CTA 버튼
-    with col_hero_left:
-        st.markdown("""
-        <div class="hero-content-left">
-            <div class="hero-main">
-                Secure Your <span class="hero-highlight">E-7 Visa</span>,<br>
-                Get Hired in Korea.
-            </div>
-            <div class="hero-desc">
-                Stop worrying about visa points & specs.<br>
-                We analyze <b>1,240 alumni data</b> to guide your winning path.
-            </div>
+    # 3. Hero Section (Main Hook)
+    st.markdown("""
+    <div class="hero-wrapper">
+        <div class="hero-main">
+            Secure Your <span class="hero-highlight">E-7 Visa</span>,<br>
+            Get Hired in Korea.
         </div>
-        """, unsafe_allow_html=True)
-        
-        # CTA Button (왼쪽 정렬 스타일 적용)
+        <div class="hero-desc">
+            Stop worrying about visa points.<br>
+            We analyze <b>1,240 alumni data</b> to guide your winning path.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 4. Main CTA Button (Centered & Styled)
+    # 중앙 정렬을 위해 컬럼 비율 조정
+    c_cta1, c_cta2, c_cta3 = st.columns([1, 1.5, 1]) 
+    with c_cta2:
+        # 버튼을 강조하기 위해 위아래 여백과 스타일링
         st.markdown("""
         <style>
         div.stButton > button:first-child {
-            height: 56px;
-            font-size: 18px;
-            font-weight: 700;
-            border-radius: 28px;
+            height: 60px;
+            font-size: 20px;
+            border-radius: 30px;
             background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%) !important;
-            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+            box-shadow: 0 10px 25px rgba(74, 144, 226, 0.4);
             border: none;
-            padding: 0 32px;
-        }
-        div.stButton > button:first-child:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(74, 144, 226, 0.4);
         }
         </style>
         """, unsafe_allow_html=True)
-        # use_container_width=False로 설정하여 버튼 길이를 내용에 맞춤 (왼쪽 정렬 느낌)
-        if st.button("🚀 Check My Visa Probability (Free)", use_container_width=False):
+        if st.button("🚀 Check My Visa Probability (Free)", use_container_width=True):
             st.session_state.step = 1
             st.rerun()
-        
-        st.markdown('<p style="font-size: 13px; color: #78909C; margin-top: 15px;">* No credit card required. Takes 2 mins.</p>', unsafe_allow_html=True)
-
-    # [우측] Hero 이미지 (일러스트레이션)
-    with col_hero_right:
-        # 예시 이미지 URL입니다. 실제 서비스에 맞는 이미지로 교체해주세요.
-        st.markdown("""
-        <div class="hero-image-container">
-            <img src="https://cdn.dribbble.com/users/1355613/screenshots/15631946/media/7f7874209018570b95fa45517452060c.jpg?compress=1&resize=800x600&vertical=top" class="hero-image" alt="Career Success Illustration">
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True) # hero-wrapper 종료
-
+    
     st.write("")
     st.write("")
     st.write("")
 
-    # 4. Features Section
+    # 5. Features Section
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -458,7 +402,7 @@ if st.session_state.step == 0:
     st.divider()
     st.write("")
 
-    # 5. Social Proof Section
+    # 6. Social Proof Section
     st.markdown("<div style='text-align:center; margin-bottom:30px; font-size:14px; color:#4A90E2; font-weight:700; letter-spacing:1px;'>PROVEN BY DATA</div>", unsafe_allow_html=True)
     
     c_s1, c_s2, c_s3 = st.columns(3)
@@ -473,7 +417,7 @@ if st.session_state.step == 0:
     st.write("")
     st.write("")
     
-    # 6. Bottom CTA
+    # 7. Bottom CTA
     st.markdown("""
     <div style="background-color:#F5F9FF; padding:40px; border-radius:20px; text-align:center; border:1px solid #E3F2FD;">
         <h2 style="margin:0 0 10px 0; color:#1A2B3C;">Ready to start your career in Korea?</h2>
@@ -481,10 +425,9 @@ if st.session_state.step == 0:
     </div>
     """, unsafe_allow_html=True)
     
-    # 하단 버튼도 중앙 정렬 (스타일 재사용을 위해 cols 사용 안함)
+    # 하단 버튼도 중앙 정렬
     c_b1, c_b2, c_b3 = st.columns([1, 1.5, 1])
     with c_b2:
-        # 상단 버튼 스타일 재사용 (st.markdown 스타일은 전역 적용됨)
         if st.button("Start Now ✨", key="bottom_cta", use_container_width=True):
             st.session_state.step = 1
             st.rerun()
@@ -1046,7 +989,7 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features
+    # [Branch 1] Global Track Features (Wayble Benchmarked)
     # ----------------------------------------------------------------
     if track == 'Global':
         
