@@ -1,3 +1,193 @@
+import streamlit as st
+import pandas as pd
+import time
+import datetime
+import random
+import graphviz
+
+# 1. 페이지 설정 및 세션 초기화
+st.set_page_config(page_title="Career Map v8.1 (Landing Page)", page_icon="🧭", layout="wide")
+
+# 세션 상태 관리 (랜딩 페이지 추가로 step 0부터 시작)
+if 'step' not in st.session_state:
+    st.session_state.step = 0  # 0부터 시작!
+if 'user_info' not in st.session_state:
+    st.session_state.user_info = {}
+
+# [회원가입 상태 관리용 변수]
+if 'signup_status' not in st.session_state:
+    st.session_state.signup_status = {
+        'phone_verified': False,
+        'id_checked': False,
+        'auth_sent': False
+    }
+
+if 'diary_logs' not in st.session_state:
+    st.session_state.diary_logs = [
+        {"date": "2026-02-01", "q": "Today's achievement?", "a": "Managed to finish the sales report in Korean without errors!"},
+        {"date": "2026-02-02", "q": "What was difficult today?", "a": "Business email etiquette is still tricky..."}
+    ]
+if 'diary_streak' not in st.session_state:
+    st.session_state.diary_streak = 3
+
+# ==============================================================================
+# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow) - [유지]
+# ==============================================================================
+st.markdown("""
+    <style>
+    /* 1. 폰트 및 기본 배경 */
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
+    
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', sans-serif;
+        color: #333333; /* Text Black */
+    }
+    
+    /* 전체 배경: 아주 연한 블루 그레이 */
+    .stApp {
+        background-color: #F7F9FC;
+    }
+
+    /* 2. 타이포그래피 */
+    h1, h2, h3 {
+        color: #2C3E50;
+        font-weight: 700;
+    }
+    p {
+        color: #546E7A;
+        line-height: 1.6;
+    }
+
+    /* 3. 버튼 (Primary: Soft Azure) */
+    .stButton > button {
+        background-color: #4A90E2 !important; /* Clubmate Blue */
+        color: #FFFFFF !important; /* 텍스트 완전 흰색 강제 */
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.2);
+        transition: all 0.2s ease;
+    }
+    .stButton > button:hover {
+        background-color: #357ABD !important;
+        color: #FFFFFF !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
+    }
+    .stButton > button:active {
+        color: #FFFFFF !important;
+        background-color: #2a65a0 !important;
+    }
+    .stButton > button p {
+        color: #FFFFFF !important;
+    }
+    
+    /* 로그인 페이지용 작은 버튼 스타일 */
+    .small-btn > button {
+        background-color: #ECEFF1 !important;
+        color: #546E7A !important;
+        border: 1px solid #CFD8DC !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 14px !important;
+        box-shadow: none !important;
+        height: auto !important;
+    }
+    .small-btn > button:hover {
+        background-color: #CFD8DC !important;
+        color: #37474F !important;
+        transform: none !important;
+    }
+    
+    /* 4. 카드 디자인 */
+    .feed-card, .metric-box, .ai-box, .generator-box {
+        background-color: #FFFFFF;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid #E3F2FD;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        margin-bottom: 20px;
+        transition: transform 0.2s ease;
+    }
+    .feed-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.15);
+        border-color: #4A90E2;
+        cursor: pointer;
+    }
+
+    /* 5. 다이어리 카드 */
+    .diary-card {
+        background-color: #FFFDE7;
+        padding: 20px;
+        border-radius: 16px;
+        border-left: 5px solid #FFD54F;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* 6. 태그 및 뱃지 */
+    .tag {
+        display: inline-block;
+        background-color: #E3F2FD;
+        color: #4A90E2;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    /* 7. 그라데이션 배너 */
+    .banner-gradient {
+        background: linear-gradient(135deg, #4A90E2 0%, #64B5F6 100%);
+        padding: 30px;
+        border-radius: 16px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+    }
+    .banner-gradient h2 { color: white !important; }
+    .banner-gradient p { color: rgba(255,255,255, 0.95) !important; }
+
+    /* 8. 입력창 스타일 */
+    .stTextInput > div > div > input {
+        border-radius: 10px;
+        border: 1px solid #CFD8DC;
+        padding: 10px 12px;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+    
+    /* 9. 사이드바 */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E1E8EE;
+    }
+    
+    /* 10. 탭 스타일 */
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        color: #4A90E2 !important;
+        border-color: #4A90E2 !important;
+    }
+    
+    /* 11. 기타 포인트 컬러 */
+    .success-text {
+        color: #2E7D32;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: -10px;
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # ==========================================
 # [STEP 0] 랜딩 페이지 (Landing Page) - [DESIGN UPGRADED]
 # ==========================================
@@ -799,7 +989,7 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features
+    # [Branch 1] Global Track Features (Wayble Benchmarked)
     # ----------------------------------------------------------------
     if track == 'Global':
         
@@ -1230,7 +1420,7 @@ elif st.session_state.step == 4:
                 else:
                     st.warning("⚠️ Still not enough. You might need higher income or STEM major bonus.")
 
-        # 3. Visa Roadmap (Timeline & Checklist) - [FIXED INDENTATION]
+        # 3. Visa Roadmap (Timeline & Checklist) - [FIXED]
         elif menu == "🗺️ Visa Roadmap":
             st.title("🗺️ Smart Visa Roadmap")
             st.caption("A strategic timeline based on your expected graduation date.")
