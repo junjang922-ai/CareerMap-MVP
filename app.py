@@ -198,29 +198,29 @@ if st.session_state.step == 0:
     <style>
     .hero-container {
         text-align: center;
-        padding: 60px 20px;
-        background: linear-gradient(135deg, #F5F7FA 0%, #E3F2FD 100%);
+        padding: 100px 20px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #F7F9FC 100%);
         border-radius: 0 0 40px 40px;
-        margin-bottom: 30px;
+        margin-bottom: 50px;
     }
     .hero-title {
-        font-size: 42px;
+        font-size: 48px;
         font-weight: 800;
         color: #2C3E50;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
         line-height: 1.3;
     }
     .hero-highlight {
         color: #4A90E2;
     }
     .hero-sub {
-        font-size: 18px;
+        font-size: 20px;
         color: #546E7A;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
     }
     .feature-card {
         background: white;
-        padding: 25px;
+        padding: 30px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         text-align: center;
@@ -231,16 +231,22 @@ if st.session_state.step == 0:
         transform: translateY(-5px);
     }
     .stat-number {
-        font-size: 32px;
+        font-size: 36px;
         font-weight: 800;
         color: #4A90E2;
+    }
+    .section-title {
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: #2C3E50;
+        margin-bottom: 40px;
     }
     </style>
     
     <div class="hero-container">
-        <div style="font-size:60px; margin-bottom:20px;">🧭</div>
         <div class="hero-title">
-            Secure Your <span class="hero-highlight">E-7 Visa</span><br>
+            Secure Your <span class="hero-highlight">E-7 Visa</span>,<br>
             Get Hired in Korea.
         </div>
         <div class="hero-sub">
@@ -259,9 +265,10 @@ if st.session_state.step == 0:
     
     st.write("")
     st.write("")
+    st.write("")
 
     # 2. Key Features (3단 카드)
-    st.markdown("<h3 style='text-align:center;'>Why Career Map?</h3>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>Why Career Map?</div>", unsafe_allow_html=True)
     st.write("")
     
     col1, col2, col3 = st.columns(3)
@@ -269,9 +276,9 @@ if st.session_state.step == 0:
     with col1:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size:40px; margin-bottom:10px;">🧮</div>
-            <h4 style="margin:0;">Smart Calculator</h4>
-            <p style="font-size:14px; color:#666; margin-top:10px;">
+            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🧮</div>
+            <h4 style="margin:0; font-size:22px;">Smart Calculator</h4>
+            <p style="font-size:16px; color:#666; margin-top:15px;">
                 Calculate your F-2-7 visa points in 1 minute.
                 We simulate your future score based on salary & KIIP.
             </p>
@@ -281,9 +288,9 @@ if st.session_state.step == 0:
     with col2:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size:40px; margin-bottom:10px;">🎓</div>
-            <h4 style="margin:0;">Alumni Data</h4>
-            <p style="font-size:14px; color:#666; margin-top:10px;">
+            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🎓</div>
+            <h4 style="margin:0; font-size:22px;">Alumni Data</h4>
+            <p style="font-size:16px; color:#666; margin-top:15px;">
                 "Where did Vietnamese Business majors go?"
                 Unlock the winning path of successful seniors.
             </p>
@@ -293,9 +300,9 @@ if st.session_state.step == 0:
     with col3:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size:40px; margin-bottom:10px;">🗺️</div>
-            <h4 style="margin:0;">Visa Roadmap</h4>
-            <p style="font-size:14px; color:#666; margin-top:10px;">
+            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🗺️</div>
+            <h4 style="margin:0; font-size:22px;">Visa Roadmap</h4>
+            <p style="font-size:16px; color:#666; margin-top:15px;">
                 From D-2 to E-7.
                 We manage your timeline and D-day so you never miss a deadline.
             </p>
@@ -304,27 +311,32 @@ if st.session_state.step == 0:
 
     st.write("")
     st.write("")
-    st.divider()
     st.write("")
 
     # 3. Social Proof (신뢰도 상승)
-    st.markdown("<h3 style='text-align:center;'>Proven by Data</h3>", unsafe_allow_html=True)
-    
-    c_s1, c_s2, c_s3 = st.columns(3)
-    with c_s1:
-        st.markdown("<div style='text-align:center;'><div class='stat-number'>1,240+</div><p>Successful Alumni</p></div>", unsafe_allow_html=True)
-    with c_s2:
-        st.markdown("<div style='text-align:center;'><div class='stat-number'>85%</div><p>E-7 Approval Rate</p></div>", unsafe_allow_html=True)
-    with c_s3:
-        st.markdown("<div style='text-align:center;'><div class='stat-number'>TOP 3</div><p>Samsung, LG, Kakao</p></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background-color:#E3F2FD; padding: 60px 20px; border-radius: 20px; margin-bottom: 50px;">
+        <div class='section-title' style="margin-bottom: 30px;">Proven by Data</div>
+        <div style="display: flex; justify-content: space-around;">
+            <div style='text-align:center;'><div class='stat-number'>1,240+</div><p style="font-size: 18px;">Successful Alumni</p></div>
+            <div style='text-align:center;'><div class='stat-number'>85%</div><p style="font-size: 18px;">E-7 Approval Rate</p></div>
+            <div style='text-align:center;'><div class='stat-number'>TOP 3</div><p style="font-size: 18px;">Samsung, LG, Kakao</p></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.write("")
     st.write("")
     
     # Bottom CTA
-    if st.button("Start Your Journey Now ✨", use_container_width=True):
-        st.session_state.step = 1
-        st.rerun()
+    st.markdown("<div class='section-title'>다음 학기 모집,<br>이제 클럽메이트에게 맡기세요.</div>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #546E7A; margin-bottom: 30px;'>가장 강력한 AI 모집 비서가 당신의 시간을 아껴드립니다. 지금 바로 경험해보세요.</p>", unsafe_allow_html=True)
+    
+    col_b_cta1, col_b_cta2, col_b_cta3 = st.columns([1, 2, 1])
+    with col_b_cta2:
+        if st.button("Start Your Journey Now ✨", use_container_width=True, type="primary"):
+            st.session_state.step = 1
+            st.rerun()
 
 # ==========================================
 # STEP 1: 로그인 및 회원가입
