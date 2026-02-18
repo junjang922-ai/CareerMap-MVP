@@ -6,11 +6,11 @@ import random
 import graphviz
 
 # 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v8.0 (Alumni Enhanced)", page_icon="🧭", layout="wide")
+st.set_page_config(page_title="Career Map v8.1 (Landing Page)", page_icon="🧭", layout="wide")
 
-# 세션 상태 관리
+# 세션 상태 관리 (랜딩 페이지 추가로 step 0부터 시작)
 if 'step' not in st.session_state:
-    st.session_state.step = 1
+    st.session_state.step = 0  # 0부터 시작!
 if 'user_info' not in st.session_state:
     st.session_state.user_info = {}
 
@@ -189,9 +189,147 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
+# [STEP 0] 랜딩 페이지 (Landing Page) - [NEW]
+# ==========================================
+if st.session_state.step == 0:
+    
+    # 1. Hero Section: 강렬한 첫인상
+    st.markdown("""
+    <style>
+    .hero-container {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #F5F7FA 0%, #E3F2FD 100%);
+        border-radius: 0 0 40px 40px;
+        margin-bottom: 30px;
+    }
+    .hero-title {
+        font-size: 42px;
+        font-weight: 800;
+        color: #2C3E50;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+    .hero-highlight {
+        color: #4A90E2;
+    }
+    .hero-sub {
+        font-size: 18px;
+        color: #546E7A;
+        margin-bottom: 30px;
+    }
+    .feature-card {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        text-align: center;
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: #4A90E2;
+    }
+    </style>
+    
+    <div class="hero-container">
+        <div style="font-size:60px; margin-bottom:20px;">🧭</div>
+        <div class="hero-title">
+            Secure Your <span class="hero-highlight">E-7 Visa</span><br>
+            Get Hired in Korea.
+        </div>
+        <div class="hero-sub">
+            Don't worry about the visa points anymore.<br>
+            We analyze <b>1,240 alumni data</b> to guide your career path.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # CTA Button (중앙 배치)
+    col_cta1, col_cta2, col_cta3 = st.columns([1, 2, 1])
+    with col_cta2:
+        if st.button("🚀 Check My Visa Probability (Free)", type="primary"):
+            st.session_state.step = 1 # 로그인 페이지로 이동
+            st.rerun()
+    
+    st.write("")
+    st.write("")
+
+    # 2. Key Features (3단 카드)
+    st.markdown("<h3 style='text-align:center;'>Why Career Map?</h3>", unsafe_allow_html=True)
+    st.write("")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <div style="font-size:40px; margin-bottom:10px;">🧮</div>
+            <h4 style="margin:0;">Smart Calculator</h4>
+            <p style="font-size:14px; color:#666; margin-top:10px;">
+                Calculate your F-2-7 visa points in 1 minute.
+                We simulate your future score based on salary & KIIP.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <div style="font-size:40px; margin-bottom:10px;">🎓</div>
+            <h4 style="margin:0;">Alumni Data</h4>
+            <p style="font-size:14px; color:#666; margin-top:10px;">
+                "Where did Vietnamese Business majors go?"
+                Unlock the winning path of successful seniors.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col3:
+        st.markdown("""
+        <div class="feature-card">
+            <div style="font-size:40px; margin-bottom:10px;">🗺️</div>
+            <h4 style="margin:0;">Visa Roadmap</h4>
+            <p style="font-size:14px; color:#666; margin-top:10px;">
+                From D-2 to E-7.
+                We manage your timeline and D-day so you never miss a deadline.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+    st.write("")
+    st.divider()
+    st.write("")
+
+    # 3. Social Proof (신뢰도 상승)
+    st.markdown("<h3 style='text-align:center;'>Proven by Data</h3>", unsafe_allow_html=True)
+    
+    c_s1, c_s2, c_s3 = st.columns(3)
+    with c_s1:
+        st.markdown("<div style='text-align:center;'><div class='stat-number'>1,240+</div><p>Successful Alumni</p></div>", unsafe_allow_html=True)
+    with c_s2:
+        st.markdown("<div style='text-align:center;'><div class='stat-number'>85%</div><p>E-7 Approval Rate</p></div>", unsafe_allow_html=True)
+    with c_s3:
+        st.markdown("<div style='text-align:center;'><div class='stat-number'>TOP 3</div><p>Samsung, LG, Kakao</p></div>", unsafe_allow_html=True)
+
+    st.write("")
+    st.write("")
+    
+    # Bottom CTA
+    if st.button("Start Your Journey Now ✨", use_container_width=True):
+        st.session_state.step = 1
+        st.rerun()
+
+# ==========================================
 # STEP 1: 로그인 및 회원가입
 # ==========================================
-if st.session_state.step == 1:
+elif st.session_state.step == 1:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.write("")
@@ -745,7 +883,7 @@ elif st.session_state.step == 4:
             st.info("💡 **Premium**\n현직자 1:1 멘토링 매칭")
 
     # ----------------------------------------------------------------
-    # [Branch 1] Global Track Features (Wayble Benchmarked)
+    # [Branch 1] Global Track Features
     # ----------------------------------------------------------------
     if track == 'Global':
         
@@ -820,7 +958,7 @@ elif st.session_state.step == 4:
                 </div>
                 """, unsafe_allow_html=True)
 
-        # [NEW] Alumni Career Guide (Upgraded Data Path & Winning Path)
+        # [NEW] Alumni Career Guide (Deep-Dive & Interactive Version)
         elif menu == "🎓 Alumni Career Guide":
             st.title("🎓 Alumni Career Guide")
             st.caption(f"Analyze data from **1,240 successful international alumni** to build your winning strategy.")
