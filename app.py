@@ -1,340 +1,244 @@
-import streamlit as st
-import pandas as pd
-import time
-import datetime
-import random
-import graphviz
-
-# 1. 페이지 설정 및 세션 초기화
-st.set_page_config(page_title="Career Map v8.1 (Landing Page)", page_icon="🧭", layout="wide")
-
-# 세션 상태 관리 (랜딩 페이지 추가로 step 0부터 시작)
-if 'step' not in st.session_state:
-    st.session_state.step = 0  # 0부터 시작!
-if 'user_info' not in st.session_state:
-    st.session_state.user_info = {}
-
-# [회원가입 상태 관리용 변수]
-if 'signup_status' not in st.session_state:
-    st.session_state.signup_status = {
-        'phone_verified': False,
-        'id_checked': False,
-        'auth_sent': False
-    }
-
-if 'diary_logs' not in st.session_state:
-    st.session_state.diary_logs = [
-        {"date": "2026-02-01", "q": "Today's achievement?", "a": "Managed to finish the sales report in Korean without errors!"},
-        {"date": "2026-02-02", "q": "What was difficult today?", "a": "Business email etiquette is still tricky..."}
-    ]
-if 'diary_streak' not in st.session_state:
-    st.session_state.diary_streak = 3
-
-# ==============================================================================
-# 🎨 Design System (Clubmate Theme: Soft Azure & Sunny Yellow) - [유지]
-# ==============================================================================
-st.markdown("""
+# ==========================================
+# [STEP 0] 랜딩 페이지 (Landing Page) - [DESIGN UPGRADED]
+# ==========================================
+if st.session_state.step == 0:
+    
+    # 1. CSS Styles (Clubmate Style)
+    st.markdown("""
     <style>
-    /* 1. 폰트 및 기본 배경 */
-    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
-    
-    html, body, [class*="css"] {
-        font-family: 'Pretendard', sans-serif;
-        color: #333333; /* Text Black */
-    }
-    
-    /* 전체 배경: 아주 연한 블루 그레이 */
-    .stApp {
-        background-color: #F7F9FC;
-    }
-
-    /* 2. 타이포그래피 */
-    h1, h2, h3 {
-        color: #2C3E50;
-        font-weight: 700;
-    }
-    p {
-        color: #546E7A;
-        line-height: 1.6;
-    }
-
-    /* 3. 버튼 (Primary: Soft Azure) */
-    .stButton > button {
-        background-color: #4A90E2 !important; /* Clubmate Blue */
-        color: #FFFFFF !important; /* 텍스트 완전 흰색 강제 */
-        border: none;
-        border-radius: 12px;
-        padding: 0.8rem 1.5rem;
-        font-size: 16px;
-        font-weight: 600;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.2);
-        transition: all 0.2s ease;
-    }
-    .stButton > button:hover {
-        background-color: #357ABD !important;
-        color: #FFFFFF !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
-    }
-    .stButton > button:active {
-        color: #FFFFFF !important;
-        background-color: #2a65a0 !important;
-    }
-    .stButton > button p {
-        color: #FFFFFF !important;
-    }
-    
-    /* 로그인 페이지용 작은 버튼 스타일 */
-    .small-btn > button {
-        background-color: #ECEFF1 !important;
-        color: #546E7A !important;
-        border: 1px solid #CFD8DC !important;
-        border-radius: 8px !important;
-        padding: 0.5rem 1rem !important;
-        font-size: 14px !important;
-        box-shadow: none !important;
-        height: auto !important;
-    }
-    .small-btn > button:hover {
-        background-color: #CFD8DC !important;
-        color: #37474F !important;
-        transform: none !important;
-    }
-    
-    /* 4. 카드 디자인 */
-    .feed-card, .metric-box, .ai-box, .generator-box {
-        background-color: #FFFFFF;
-        padding: 24px;
-        border-radius: 16px;
-        border: 1px solid #E3F2FD;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    /* 헤더 스타일 */
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
         margin-bottom: 20px;
-        transition: transform 0.2s ease;
+        border-bottom: 1px solid #F0F2F5;
     }
-    .feed-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.15);
-        border-color: #4A90E2;
-        cursor: pointer;
+    .logo-text {
+        font-size: 24px;
+        font-weight: 900;
+        color: #4A90E2; /* Brand Blue */
+        font-family: 'Pretendard', sans-serif;
+        text-decoration: none;
     }
-
-    /* 5. 다이어리 카드 */
-    .diary-card {
-        background-color: #FFFDE7;
-        padding: 20px;
-        border-radius: 16px;
-        border-left: 5px solid #FFD54F;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* 6. 태그 및 뱃지 */
-    .tag {
-        display: inline-block;
-        background-color: #E3F2FD;
-        color: #4A90E2;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-    
-    /* 7. 그라데이션 배너 */
-    .banner-gradient {
-        background: linear-gradient(135deg, #4A90E2 0%, #64B5F6 100%);
-        padding: 30px;
-        border-radius: 16px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
-    }
-    .banner-gradient h2 { color: white !important; }
-    .banner-gradient p { color: rgba(255,255,255, 0.95) !important; }
-
-    /* 8. 입력창 스타일 */
-    .stTextInput > div > div > input {
-        border-radius: 10px;
-        border: 1px solid #CFD8DC;
-        padding: 10px 12px;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: #4A90E2;
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-    }
-    
-    /* 9. 사이드바 */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #E1E8EE;
-    }
-    
-    /* 10. 탭 스타일 */
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        color: #4A90E2 !important;
-        border-color: #4A90E2 !important;
-    }
-    
-    /* 11. 기타 포인트 컬러 */
-    .success-text {
-        color: #2E7D32;
-        font-size: 13px;
+    .nav-link {
+        font-size: 15px;
+        color: #546E7A;
+        margin-left: 20px;
+        text-decoration: none;
         font-weight: 500;
-        margin-top: -10px;
-        margin-bottom: 10px;
+    }
+
+    /* 히어로 섹션 스타일 */
+    .hero-wrapper {
+        text-align: center;
+        padding: 80px 20px 40px 20px;
+        background: radial-gradient(50% 50% at 50% 50%, #F5F9FF 0%, #F7F9FC 100%);
+        border-radius: 30px;
+        margin-bottom: 40px;
+    }
+    .hero-main {
+        font-size: 52px;
+        font-weight: 800;
+        color: #1A2B3C;
+        line-height: 1.25;
+        margin-bottom: 20px;
+        letter-spacing: -1px;
+    }
+    .hero-highlight {
+        color: #4A90E2;
+        background: linear-gradient(120deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.3) 100%);
+        padding: 0 5px;
+        border-radius: 8px;
+    }
+    .hero-desc {
+        font-size: 19px;
+        color: #546E7A;
+        margin-bottom: 40px;
+        line-height: 1.6;
+        font-weight: 400;
+    }
+    
+    /* 카드 디자인 */
+    .feature-box {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        text-align: center;
+        border: 1px solid #F0F2F5;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    .feature-box:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.15);
+        border-color: #E3F2FD;
+    }
+    .emoji-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
+        background-color: #F5F9FF;
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 20px auto;
+    }
+    
+    /* 통계 섹션 */
+    .stat-box {
+        text-align: center;
+    }
+    .stat-num {
+        font-size: 36px;
+        font-weight: 800;
+        color: #1A2B3C;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #78909C;
+        font-weight: 600;
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# ==========================================
-# [STEP 0] 랜딩 페이지 (Landing Page) - [NEW]
-# ==========================================
-if st.session_state.step == 0:
-    
-    # 1. Hero Section: 강렬한 첫인상
+    # 2. Header (Navigation Bar)
+    # 상단에 로고와 메뉴를 배치하여 '비어 보이는' 느낌 제거
+    col_h1, col_h2, col_h3 = st.columns([2, 4, 1])
+    with col_h1:
+        st.markdown('<div class="logo-text">🧭 Career Map</div>', unsafe_allow_html=True)
+    with col_h2:
+        # 가상의 메뉴 (디자인 요소)
+        st.markdown("""
+        <div style="text-align: right; padding-top: 5px;">
+            <span class="nav-link">Visa Calculator</span>
+            <span class="nav-link">Success Stories</span>
+            <span class="nav-link">Pricing</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_h3:
+        if st.button("Log in", key="top_login_btn"):
+             st.session_state.step = 1
+             st.rerun()
+
+    st.write("")
+    st.write("")
+
+    # 3. Hero Section (Main Hook)
     st.markdown("""
-    <style>
-    .hero-container {
-        text-align: center;
-        padding: 100px 20px;
-        background: linear-gradient(135deg, #E3F2FD 0%, #F7F9FC 100%);
-        border-radius: 0 0 40px 40px;
-        margin-bottom: 50px;
-    }
-    .hero-title {
-        font-size: 48px;
-        font-weight: 800;
-        color: #2C3E50;
-        margin-bottom: 20px;
-        line-height: 1.3;
-    }
-    .hero-highlight {
-        color: #4A90E2;
-    }
-    .hero-sub {
-        font-size: 20px;
-        color: #546E7A;
-        margin-bottom: 40px;
-    }
-    .feature-card {
-        background: white;
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        text-align: center;
-        transition: transform 0.2s;
-        height: 100%;
-    }
-    .feature-card:hover {
-        transform: translateY(-5px);
-    }
-    .stat-number {
-        font-size: 36px;
-        font-weight: 800;
-        color: #4A90E2;
-    }
-    .section-title {
-        text-align: center;
-        font-size: 32px;
-        font-weight: 700;
-        color: #2C3E50;
-        margin-bottom: 40px;
-    }
-    </style>
-    
-    <div class="hero-container">
-        <div class="hero-title">
+    <div class="hero-wrapper">
+        <div class="hero-main">
             Secure Your <span class="hero-highlight">E-7 Visa</span>,<br>
             Get Hired in Korea.
         </div>
-        <div class="hero-sub">
-            Don't worry about the visa points anymore.<br>
-            We analyze <b>1,240 alumni data</b> to guide your career path.
+        <div class="hero-desc">
+            Stop worrying about visa points.<br>
+            We analyze <b>1,240 alumni data</b> to guide your winning path.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # CTA Button (중앙 배치)
-    col_cta1, col_cta2, col_cta3 = st.columns([1, 2, 1])
-    with col_cta2:
-        if st.button("🚀 Check My Visa Probability (Free)", type="primary"):
-            st.session_state.step = 1 # 로그인 페이지로 이동
+    # 4. Main CTA Button (Centered & Styled)
+    # 중앙 정렬을 위해 컬럼 비율 조정
+    c_cta1, c_cta2, c_cta3 = st.columns([1, 1.5, 1]) 
+    with c_cta2:
+        # 버튼을 강조하기 위해 위아래 여백과 스타일링
+        st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            height: 60px;
+            font-size: 20px;
+            border-radius: 30px;
+            background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%) !important;
+            box-shadow: 0 10px 25px rgba(74, 144, 226, 0.4);
+            border: none;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        if st.button("🚀 Check My Visa Probability (Free)", use_container_width=True):
+            st.session_state.step = 1
             st.rerun()
     
     st.write("")
     st.write("")
     st.write("")
 
-    # 2. Key Features (3단 카드)
-    st.markdown("<div class='section-title'>Why Career Map?</div>", unsafe_allow_html=True)
-    st.write("")
-    
+    # 5. Features Section
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        <div class="feature-card">
-            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🧮</div>
-            <h4 style="margin:0; font-size:22px;">Smart Calculator</h4>
-            <p style="font-size:16px; color:#666; margin-top:15px;">
-                Calculate your F-2-7 visa points in 1 minute.
-                We simulate your future score based on salary & KIIP.
+        <div class="feature-box">
+            <div class="emoji-icon">🧮</div>
+            <h3 style="font-size:20px; font-weight:700; margin:0;">Smart Calculator</h3>
+            <p style="font-size:14px; color:#546E7A; margin-top:10px; line-height:1.5;">
+                Calculate your F-2-7 points in 1 minute.
+                Simulate future scores with salary & KIIP.
             </p>
         </div>
         """, unsafe_allow_html=True)
         
     with col2:
         st.markdown("""
-        <div class="feature-card">
-            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🎓</div>
-            <h4 style="margin:0; font-size:22px;">Alumni Data</h4>
-            <p style="font-size:16px; color:#666; margin-top:15px;">
-                "Where did Vietnamese Business majors go?"
-                Unlock the winning path of successful seniors.
+        <div class="feature-box">
+            <div class="emoji-icon">🎓</div>
+            <h3 style="font-size:20px; font-weight:700; margin:0;">Alumni Data</h3>
+            <p style="font-size:14px; color:#546E7A; margin-top:10px; line-height:1.5;">
+                "Where did Vietnamese majors go?"
+                Unlock the winning path of seniors.
             </p>
         </div>
         """, unsafe_allow_html=True)
         
     with col3:
         st.markdown("""
-        <div class="feature-card">
-            <div style="font-size:50px; margin-bottom:20px; color:#4A90E2;">🗺️</div>
-            <h4 style="margin:0; font-size:22px;">Visa Roadmap</h4>
-            <p style="font-size:16px; color:#666; margin-top:15px;">
+        <div class="feature-box">
+            <div class="emoji-icon">🗺️</div>
+            <h3 style="font-size:20px; font-weight:700; margin:0;">Visa Roadmap</h3>
+            <p style="font-size:14px; color:#546E7A; margin-top:10px; line-height:1.5;">
                 From D-2 to E-7.
-                We manage your timeline and D-day so you never miss a deadline.
+                Manage your timeline and D-day so you never miss a deadline.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
     st.write("")
     st.write("")
+    st.divider()
     st.write("")
 
-    # 3. Social Proof (신뢰도 상승)
+    # 6. Social Proof Section
+    st.markdown("<div style='text-align:center; margin-bottom:30px; font-size:14px; color:#4A90E2; font-weight:700; letter-spacing:1px;'>PROVEN BY DATA</div>", unsafe_allow_html=True)
+    
+    c_s1, c_s2, c_s3 = st.columns(3)
+    with c_s1:
+        st.markdown("<div class='stat-box'><div class='stat-num'>1,240+</div><div class='stat-label'>Successful Alumni</div></div>", unsafe_allow_html=True)
+    with c_s2:
+        st.markdown("<div class='stat-box'><div class='stat-num'>85%</div><div class='stat-label'>E-7 Approval Rate</div></div>", unsafe_allow_html=True)
+    with c_s3:
+        st.markdown("<div class='stat-box'><div class='stat-num'>TOP 3</div><div class='stat-label'>Samsung, LG, Kakao</div></div>", unsafe_allow_html=True)
+
+    st.write("")
+    st.write("")
+    st.write("")
+    
+    # 7. Bottom CTA
     st.markdown("""
-    <div style="background-color:#E3F2FD; padding: 60px 20px; border-radius: 20px; margin-bottom: 50px;">
-        <div class='section-title' style="margin-bottom: 30px;">Proven by Data</div>
-        <div style="display: flex; justify-content: space-around;">
-            <div style='text-align:center;'><div class='stat-number'>1,240+</div><p style="font-size: 18px;">Successful Alumni</p></div>
-            <div style='text-align:center;'><div class='stat-number'>85%</div><p style="font-size: 18px;">E-7 Approval Rate</p></div>
-            <div style='text-align:center;'><div class='stat-number'>TOP 3</div><p style="font-size: 18px;">Samsung, LG, Kakao</p></div>
-        </div>
+    <div style="background-color:#F5F9FF; padding:40px; border-radius:20px; text-align:center; border:1px solid #E3F2FD;">
+        <h2 style="margin:0 0 10px 0; color:#1A2B3C;">Ready to start your career in Korea?</h2>
+        <p style="color:#546E7A; margin-bottom:20px;">Join 4,000+ international students managing their visa & career.</p>
     </div>
     """, unsafe_allow_html=True)
-
-    st.write("")
-    st.write("")
     
-    # Bottom CTA
-    st.markdown("<div class='section-title'>다음 학기 모집,<br>이제 클럽메이트에게 맡기세요.</div>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #546E7A; margin-bottom: 30px;'>가장 강력한 AI 모집 비서가 당신의 시간을 아껴드립니다. 지금 바로 경험해보세요.</p>", unsafe_allow_html=True)
-    
-    col_b_cta1, col_b_cta2, col_b_cta3 = st.columns([1, 2, 1])
-    with col_b_cta2:
-        if st.button("Start Your Journey Now ✨", use_container_width=True, type="primary"):
+    # 하단 버튼도 중앙 정렬
+    c_b1, c_b2, c_b3 = st.columns([1, 1.5, 1])
+    with c_b2:
+        if st.button("Start Now ✨", key="bottom_cta", use_container_width=True):
             st.session_state.step = 1
             st.rerun()
 
